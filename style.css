@@ -1,20 +1,45 @@
 body {
-    background-color: lightblue;
+    background-color: #e5e5f7;
+    opacity: 1;
+    background-image:  linear-gradient(30deg, #67d9ff 12%, transparent 12.5%, transparent 87%, #67d9ff 87.5%, #67d9ff), linear-gradient(150deg, #67d9ff 12%, transparent 12.5%, transparent 87%, #67d9ff 87.5%, #67d9ff), linear-gradient(30deg, #67d9ff 12%, transparent 12.5%, transparent 87%, #67d9ff 87.5%, #67d9ff), linear-gradient(150deg, #67d9ff 12%, transparent 12.5%, transparent 87%, #67d9ff 87.5%, #67d9ff), linear-gradient(60deg, #67d9ff77 25%, transparent 25.5%, transparent 75%, #67d9ff77 75%, #67d9ff77), linear-gradient(60deg, #67d9ff77 25%, transparent 25.5%, transparent 75%, #67d9ff77 75%, #67d9ff77);
+    background-size: 62px 109px;
+    background-position: 0 0, 0 0, 31px 54px, 31px 54px, 0 0, 31px 54px;
 }
-h1 {
+div.heading {
+    width: max-content;
+    background-color: white;
     color: black;
     text-align: center;
-}
-div {
-    background-color: white;
-    margin-right: 100px;
-    margin-left: 100px;
+
+    margin-left: auto;
+    margin-right: auto;
+
     border: 1px solid red;
     border-radius: 15px;
 }
-p,table {
-    margin-left: 20px;
-    margin-right: 20px;
+h1,h2 {
+    margin: 10px;
+}
+img {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width:350px;
+    height:350px;
+}
+div.body {
+    background-color: white;
+
+    margin-left: 100px;
+    margin-right: 100px;
+
+    border: 1px solid red;
+    border-radius: 15px;
+
+    padding-left: 20px;
+    padding-right: 20px;
+}
+p {
     color: black;
 }
 li {
