@@ -1,10 +1,22 @@
 body {
-    background-color: white;
+    background-color: lightblue;
 }
 h1 {
     color: black;
     text-align: center;
 }
-p {
+div {
+    background-color: white;
+    margin-right: 100px;
+    margin-left: 100px;
+    border: 1px solid red;
+    border-radius: 5px;
+}
+p,table {
+    margin-left: 20px;
+    margin-right: 20px;
+    color: black;
+}
+li {
     color: black;
 }
