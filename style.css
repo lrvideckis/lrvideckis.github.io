@@ -6,6 +6,16 @@ body {
     background-size: 62px 109px;
     background-position: 0 0, 0 0, 31px 54px, 31px 54px, 0 0, 31px 54px;
 }
+div.nav_bar {
+    width: max-content;
+    background-color: white;
+    text-align: center;
+
+    border: 1px solid red;
+    border-radius: 15px;
+
+    padding: 10px;
+}
 div.heading {
     width: max-content;
     background-color: white;
@@ -44,5 +54,9 @@ p {
     color: black;
 }
 li {
+    color: black;
+}
+ul {
+    background-color: white;
     color: black;
 }
