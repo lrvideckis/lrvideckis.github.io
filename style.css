@@ -8,7 +8,6 @@ body {
 div.heading {
     width: max-content;
     background-color: white;
-    color: black;
     text-align: center;
 
     margin-left: auto;
@@ -16,6 +15,19 @@ div.heading {
 
     border: 1px solid red;
     border-radius: 15px;
+}
+div.body {
+    width: 550px;
+    background-color: white;
+
+    margin-left: auto;
+    margin-right: auto;
+
+    border: 1px solid red;
+    border-radius: 15px;
+
+    padding-left: 20px;
+    padding-right: 20px;
 }
 h1,h2 {
     margin: 10px;
@@ -26,18 +38,6 @@ img {
     margin-right: auto;
     width:350px;
     height:350px;
-}
-div.body {
-    background-color: white;
-
-    margin-left: 100px;
-    margin-right: 100px;
-
-    border: 1px solid red;
-    border-radius: 15px;
-
-    padding-left: 20px;
-    padding-right: 20px;
 }
 p {
     color: black;
