@@ -16,6 +16,10 @@ div.nav_bar {
 
     padding: 10px;
 }
+div.slide-container {
+    overflow: auto;
+    white-space: nowrap;
+}
 div.heading {
     width: max-content;
     background-color: white;
