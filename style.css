@@ -44,8 +44,17 @@ div.body {
     padding-left: 20px;
     padding-right: 20px;
 }
-h1,h2 {
+h1.main_title,h2.blog_date {
     margin: 10px;
+}
+ol.main_page_blog_list {
+    list-style: none;
+}
+h3.blog_title {
+    margin-bottom: 3px;
+}
+p.blog_date {
+    margin-top: 3px;
 }
 img.dp {
     display: block;
@@ -53,14 +62,4 @@ img.dp {
     margin-right: auto;
     width:350px;
     height:350px;
-}
-p {
-    color: black;
-}
-li {
-    color: black;
-}
-ul {
-    background-color: white;
-    color: black;
 }
