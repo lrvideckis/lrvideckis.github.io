@@ -1,0 +1,13 @@
+name: check html
+
+on: push
+
+jobs:
+  astyle_cppcheck:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install dependencies
+      run: sudo apt install tidy
+    - name: run tidy
+      run: make tidy
