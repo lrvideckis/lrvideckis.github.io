@@ -8,143 +8,145 @@
     </head>
     <body>
         <script type="text/javascript" language="javascript" src="/navagation_bar.js"></script>
-        <div class="heading">
-            <h1 class="main_title">Designing a Devanagari Keyboard on Mobile</h1>
-            <h2 class="blog_date">2023 August 21</h2>
-        </div>
-        <br>
         <div class="body">
-
-            <h3>Background</h3>
-            <p>
-            Over a year ago, I started learning Hindi after becoming good
-            friends with this group of Indian boys in college. I wanted to be
-            able to hold a conversation in Hindi, as well as text/type in
-            Hindi.
-            </p>
-            <p>
-            Hindi uses a different script, namely
-            <a href="https://en.wikipedia.org/wiki/Devanagari">Devanagari</a>.
-            Although it's possible to write Hindi
-            <a href="https://en.wikipedia.org/wiki/Hindustani_orthography#The_Latin_Alphabet">using
-                the Latin/Roman alphabet</a>, I didn't want this. I wanted to be able
-            to type in the real deal which is Devanagari. This meant learning
-            the Devanagari script as well as some new Devanagari keyboard layout on mobile.
-            </p>
-            <p>I'm only interested in typing on mobile (not desktop, nor
-            handwriting). It's 2023 - only relevant skills!</p>
-
-            <h3>Learning About Devanagari</h3>
-            <p>Devanagari a phonetic script, meaning:</p>
-            <ul>
-                <li>each character represents a specific sound</li>
-                <li>each sound has a specific character which represents it</li>
-            </ul>
-            <p>
-            By comparison, the <a href="https://en.wikipedia.org/wiki/Latin_alphabet">Latin/Roman alphabet</a> is not phonetic:
-            </p>
-            <img src="snoop_tweet.png" alt="snoop tweet" style="width:350px;height:auto;">
-            <br>
-            <p>The non-phonetic-ness of English has some interesting
-            consequences: we have spelling bee's. This is because in English,
-            spelling is non-trivial. In phonetic languages like Hindi, spelling
-            is trivial: you just sound out the word and that is also the
-            spelling.</p>
-            <p>Q: Do you think they have spelling bee's in India?</p>
-            <details>
-                <summary>A:</summary>
-                Actually they do! (but in English).
-            </details>
-            <p>
-            Another consequence: it's possible to be able to read Devanagari out
-            loud without understanding the meaning.
-            </p>
-
-            <h3>The Actual Layout</h3>
-            <p>behold! (Swipe to the corner to type that character)</p>
-            <div class="slide-container">
-                <img src="devanagari_layout.png" alt="Devanagari layout" style="width:540px;height:auto;">
-                <img src="devanagari_layout_fn_layer.png" alt="Devanagari layout fn layer" style="width:540px;height:auto;">
+            <div class="heading">
+                <h1 class="main_title">Designing a Devanagari Keyboard on Mobile</h1>
+                <h2 class="blog_date">2023 August 21</h2>
             </div>
-            <ul>
-                <li>on the <a href="https://play.google.com/store/apps/details?id=juloo.keyboard2">Google Play Store</a> (I created and added this layout to that app)</li>
-                <li><a href="https://www.sttmedia.com/characterfrequency-hindi">More frequent characters</a> are a tap; less frequent characters are a swipe</li>
-                <li>It is possible to type all characters in the <a href="https://en.wikipedia.org/wiki/Devanagari_(Unicode_block)">Devanagari unicode block</a></li>
-            </ul>
-
-            <h3>Consonants Row</h3>
-            <p>In Devanagari, the consonants are grouped by tongue/lip movements:</p>
-            <img src="devanagari_cons_group_circled.png" alt="Devanagari consonants">
             <br>
-            <a href="https://www.omniglot.com/writing/devanagari.htm">source</a>
-            <p>For example, the "Labial" group's characters are all lip-movements:</p>
-            <ul>
-                <li>प = p</li>
-                <li>फ = f</li>
-                <li>ब = b</li>
-                <li>म = m</li>
-            </ul>
-            <img src="consonants_row_original.png" alt="consonants original" style="width:500px;height:auto;">
-            <p>Let's have a key for each consonant group.</p>
-            <p>Further organization:</p>
-            <img src="consonants_row_by_aspiration.png" alt="consonants grouped by aspiration" style="width:500px;height:auto;">
-            <ul>
-                <li>Circled in <span style="color:#FF0000">red</span> above: aspirated consonants</li>
-                <li>Circled in <span style="color:#0000FF">blue</span> above: unaspirated consonants</li>
-                <li>Circled in <span style="color:#FFFF00">yellow</span> above: nasal consonants</li>
-                <li>Circled in <span style="color:#00FF00">green</span> above: the consonants which don't follow the pattern</li>
-            </ul>
-            <img src="consonants_row_by_sound.png" alt="consonants grouped by sound" style="width:500px;height:auto;">
-            <p>Here, each circled pair of consonants has the same tongue/lip movement.</p>
+            <div class="main_content">
 
-            <h3>Vowels Row</h3>
-            <p>In Devanagari, the vowels are grouped by sound:</p>
-            <img src="devanagari_vwl_group_circled.png" alt="Devanagari vowels">
-            <a href="https://www.omniglot.com/writing/devanagari.htm">source</a>
-            <p>For example, the "Rounded high back" group's characters are all "u"-sounds.</p>
-            <p>Q: What is "diphthong"?</p>
-            <details>
-                <summary>A:</summary>
-                When you change your underwear
-            </details>
-            <img src="vowels_row_original.png" alt="vowels original" style="width:500px;height:auto;">
-            <p>Let's have a key for each vowel group. The vowel row also somewhat follows the "standard" vowel order:</p>
-            <p>अ आ इ ई उ ऊ ऋ ए ऐ ओ औ</p>
-            <p>It's analogous to the "standard" vowel order in English: AEIOU.
-            Note neither of the "standard" vowel orders follows <a
-                                                                        href="https://en.wikipedia.org/wiki/Scale_of_vowels">pitch
-                                                                        order</a> (sad).</p>
-            <p>Further organization:</p>
-            <img src="vowel_row_by_diacritic.png" alt="vowels grouped by diacritic" style="width:500px;height:auto;">
-            <ul>
-                <li>Circled in <span style="color:#FF0000">red</span> above: initial vowels</li>
-                <li>Circled in <span style="color:#0000FF">blue</span> above: diacritic vowels</li>
-            </ul>
-            <img src="vowel_row_by_sound.png" alt="vowels grouped by sound" style="width:500px;height:auto;">
-            <p>Here, each circled pair of vowels has the same sound.</p>
+                <h3>Background</h3>
+                <p>
+                Over a year ago, I started learning Hindi after becoming good
+                friends with this group of Indian boys in college. I wanted to be
+                able to hold a conversation in Hindi, as well as text/type in
+                Hindi.
+                </p>
+                <p>
+                Hindi uses a different script, namely
+                <a href="https://en.wikipedia.org/wiki/Devanagari">Devanagari</a>.
+                Although it's possible to write Hindi
+                <a href="https://en.wikipedia.org/wiki/Hindustani_orthography#The_Latin_Alphabet">using
+                    the Latin/Roman alphabet</a>, I didn't want this. I wanted to be able
+                to type in the real deal which is Devanagari. This meant learning
+                the Devanagari script as well as some new Devanagari keyboard layout on mobile.
+                </p>
+                <p>I'm only interested in typing on mobile (not desktop, nor
+                handwriting). It's 2023 - only relevant skills!</p>
 
-            <h3>Alternative Layouts</h3>
-            <p>Before creating my layout, I asked my Indian bros which
-            layouts they used. They pretty much had 2 answers:</p>
+                <h3>Learning About Devanagari</h3>
+                <p>Devanagari a phonetic script, meaning:</p>
+                <ul>
+                    <li>each character represents a specific sound</li>
+                    <li>each sound has a specific character which represents it</li>
+                </ul>
+                <p>
+                By comparison, the <a href="https://en.wikipedia.org/wiki/Latin_alphabet">Latin/Roman alphabet</a> is not phonetic:
+                </p>
+                <img src="snoop_tweet.png" alt="snoop tweet" style="width:350px;height:auto;">
+                <br>
+                <p>The non-phonetic-ness of English has some interesting
+                consequences: we have spelling bee's. This is because in English,
+                spelling is non-trivial. In phonetic languages like Hindi, spelling
+                is trivial: you just sound out the word and that is also the
+                spelling.</p>
+                <p>Q: Do you think they have spelling bee's in India?</p>
+                <details>
+                    <summary>A:</summary>
+                    Actually they do! (but in English).
+                </details>
+                <p>
+                Another consequence: it's possible to be able to read Devanagari out
+                loud without understanding the meaning.
+                </p>
 
-            <p>1. <a href="https://play.google.com/store/search?q=gboard">GBoard</a>'s Hindi layout</p>
-            <img src="hindi_gboard.png" alt="Gboard Hindi layout" style="width:540px;height:auto;">
-            <p>2. <a href="https://play.google.com/store/search?q=swiftkey">SwiftKey</a>'s Hindi layout</p>
-            <img src="swiftkey_hindi_layout.png" alt="Swiftkey Hindi layout.png" style="width:540px;height:auto;">
+                <h3>The Actual Layout</h3>
+                <p>behold! (Swipe to the corner to type that character)</p>
+                <div class="slide-container">
+                    <img src="devanagari_layout.png" alt="Devanagari layout" style="width:540px;height:auto;">
+                    <img src="devanagari_layout_fn_layer.png" alt="Devanagari layout fn layer" style="width:540px;height:auto;">
+                </div>
+                <ul>
+                    <li>on the <a href="https://play.google.com/store/apps/details?id=juloo.keyboard2">Google Play Store</a> (I created and added this layout to that app)</li>
+                    <li><a href="https://www.sttmedia.com/characterfrequency-hindi">More frequent characters</a> are a tap; less frequent characters are a swipe</li>
+                    <li>It is possible to type all characters in the <a href="https://en.wikipedia.org/wiki/Devanagari_(Unicode_block)">Devanagari unicode block</a></li>
+                </ul>
 
-            <p>In hindsight, these are both great options. They both have
-            similar organization. Both these keyboards have auto-complete,
-            whereas Unexpected Keyboard (the app which I added my layout to)
-            doesn't have auto-complete.</p>
-            <p>If you already know Devanagari and simply want to type fast,
-            auto-complete might be the move.</p>
-            <hr>
-            <p>I briefly considered the <a
-                                                href="https://en.wikipedia.org/wiki/InScript_keyboard">Inscript
-                                                layout</a>, the official Devanagari layout for desktop.</p>
-            <img src="inscript_layout.png" alt="Inscript layout" style="width:540px;height:auto;">
-            <p>(<a href="https://play.google.com/store/apps/details?id=juloo.keyboard2">Google Play Store</a>)
-            If you already know this layout from typing on desktop, this might be the move.</p>
+                <h3>Consonants Row</h3>
+                <p>In Devanagari, the consonants are grouped by tongue/lip movements:</p>
+                <img src="devanagari_cons_group_circled.png" alt="Devanagari consonants">
+                <br>
+                <a href="https://www.omniglot.com/writing/devanagari.htm">source</a>
+                <p>For example, the "Labial" group's characters are all lip-movements:</p>
+                <ul>
+                    <li>प = p</li>
+                    <li>फ = f</li>
+                    <li>ब = b</li>
+                    <li>म = m</li>
+                </ul>
+                <img src="consonants_row_original.png" alt="consonants original" style="width:500px;height:auto;">
+                <p>Let's have a key for each consonant group.</p>
+                <p>Further organization:</p>
+                <img src="consonants_row_by_aspiration.png" alt="consonants grouped by aspiration" style="width:500px;height:auto;">
+                <ul>
+                    <li>Circled in <span style="color:#FF0000">red</span> above: aspirated consonants</li>
+                    <li>Circled in <span style="color:#0000FF">blue</span> above: unaspirated consonants</li>
+                    <li>Circled in <span style="color:#FFFF00">yellow</span> above: nasal consonants</li>
+                    <li>Circled in <span style="color:#00FF00">green</span> above: the consonants which don't follow the pattern</li>
+                </ul>
+                <img src="consonants_row_by_sound.png" alt="consonants grouped by sound" style="width:500px;height:auto;">
+                <p>Here, each circled pair of consonants has the same tongue/lip movement.</p>
+
+                <h3>Vowels Row</h3>
+                <p>In Devanagari, the vowels are grouped by sound:</p>
+                <img src="devanagari_vwl_group_circled.png" alt="Devanagari vowels">
+                <a href="https://www.omniglot.com/writing/devanagari.htm">source</a>
+                <p>For example, the "Rounded high back" group's characters are all "u"-sounds.</p>
+                <p>Q: What is "diphthong"?</p>
+                <details>
+                    <summary>A:</summary>
+                    When you change your underwear
+                </details>
+                <img src="vowels_row_original.png" alt="vowels original" style="width:500px;height:auto;">
+                <p>Let's have a key for each vowel group. The vowel row also somewhat follows the "standard" vowel order:</p>
+                <p>अ आ इ ई उ ऊ ऋ ए ऐ ओ औ</p>
+                <p>It's analogous to the "standard" vowel order in English: AEIOU.
+                Note neither of the "standard" vowel orders follows <a
+                                                                            href="https://en.wikipedia.org/wiki/Scale_of_vowels">pitch
+                                                                            order</a> (sad).</p>
+                <p>Further organization:</p>
+                <img src="vowel_row_by_diacritic.png" alt="vowels grouped by diacritic" style="width:500px;height:auto;">
+                <ul>
+                    <li>Circled in <span style="color:#FF0000">red</span> above: initial vowels</li>
+                    <li>Circled in <span style="color:#0000FF">blue</span> above: diacritic vowels</li>
+                </ul>
+                <img src="vowel_row_by_sound.png" alt="vowels grouped by sound" style="width:500px;height:auto;">
+                <p>Here, each circled pair of vowels has the same sound.</p>
+
+                <h3>Alternative Layouts</h3>
+                <p>Before creating my layout, I asked my Indian bros which
+                layouts they used. They pretty much had 2 answers:</p>
+
+                <p>1. <a href="https://play.google.com/store/search?q=gboard">GBoard</a>'s Hindi layout</p>
+                <img src="hindi_gboard.png" alt="Gboard Hindi layout" style="width:540px;height:auto;">
+                <p>2. <a href="https://play.google.com/store/search?q=swiftkey">SwiftKey</a>'s Hindi layout</p>
+                <img src="swiftkey_hindi_layout.png" alt="Swiftkey Hindi layout.png" style="width:540px;height:auto;">
+
+                <p>In hindsight, these are both great options. They both have
+                similar organization. Both these keyboards have auto-complete,
+                whereas Unexpected Keyboard (the app which I added my layout to)
+                doesn't have auto-complete.</p>
+                <p>If you already know Devanagari and simply want to type fast,
+                auto-complete might be the move.</p>
+                <hr>
+                <p>I briefly considered the <a
+                                                    href="https://en.wikipedia.org/wiki/InScript_keyboard">Inscript
+                                                    layout</a>, the official Devanagari layout for desktop.</p>
+                <img src="inscript_layout.png" alt="Inscript layout" style="width:540px;height:auto;">
+                <p>(<a href="https://play.google.com/store/apps/details?id=juloo.keyboard2">Google Play Store</a>)
+                If you already know this layout from typing on desktop, this might be the move.</p>
+            </div>
         </div>
     </body>
 </html>
