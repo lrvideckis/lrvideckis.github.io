@@ -3,7 +3,7 @@ name: check html
 on: push
 
 jobs:
-  astyle_cppcheck:
+  run_tidy:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
