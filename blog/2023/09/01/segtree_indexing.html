@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Segment Tree Indexing</title>
+        <link rel="stylesheet" href="/style.css">
+        <link rel="stylesheet" href="/highlight/styles/github.min.css">
+        <script src="/highlight/highlight.min.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', (event) => {
+                document.querySelectorAll('pre code').forEach((block) => {
+                    hljs.highlightBlock(block);
+                });
+            });
+        </script>
+    </head>
+    <body>
+        <script type="text/javascript" language="javascript" src="/navagation_bar.js"></script>
+        <div class="body">
+            <div class="heading">
+                <h1 class="main_title">Segment Tree Indexing and Tree Traversals</h1>
+                <h2 class="blog_date">2023 September 5</h2>
+            </div>
+            <br>
+            <div class="main_content">
+                <h3>Background</h3>
+                <p>
+                hi
+                </p>
+                <pre><code class="language-cpp">
+const int MAXN = 500'000;
+int n;
+long long t[4*MAXN];
+
+void build(int a[], int tl=0, int tr=n, int v=1) {
+    if (tr - tl == 1) {
+        t[v] = a[tl];
+    } else {
+        int tm = (tl+tr)/2;
+        build(a, tl, tm, 2*v);
+        build(a, tm, tr, 2*v+1);
+        t[v] = t[2*v] + t[2*v+1];
+    }
+}
+
+long long query(int l, int r, int tl=0, int tr=n, int v=1) {
+    if (r <= tl || tr <= l) return 0LL;
+    if (l <= tl && tr <= r) return t[v];
+    int tm = (tl+tr)/2;
+    return query(l, r, tl, tm, 2*v)
+         + query(l, r, tm, tr, 2*v+1);
+}
+
+void update(int pos, int new_val, int tl=0, int tr=n, int v=1) {
+    if (tr - tl == 1) {
+        t[v] += new_val;
+    } else {
+        int tm = (tl+tr)/2;
+        if (pos < tm)
+            update(pos, new_val, tl, tm, 2*v);
+        else
+            update(pos, new_val, tm, tr, 2*v+1);
+        t[v] = t[2*v] + t[2*v+1];
+    }
+}
+                </code></pre>
+                <p>
+                hi
+                </p>
+            </div>
+        </div>
+    </body>
+</html>
