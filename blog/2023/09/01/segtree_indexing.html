@@ -36,6 +36,7 @@ For background about what a segment tree is, I recommend the
 of a segment tree uses an array <code>t</code> of size <code>4*n</code>.
                 This blog discusses 3 different ways how to index the
                 nodes in a segment tree to achieve (optimal) <code>2*n-1</code> memory.
+                </p>
                 <details>
                     <summary>why is <code>2*n-1</code> optimal?</summary>
                     <ul>
@@ -44,8 +45,6 @@ of a segment tree uses an array <code>t</code> of size <code>4*n</code>.
                         <img src="bst_leaf_vs_internal_nodes.png" alt="leaf versus internal" style="width:540px;height:auto;">
                     </ul>
                 </details>
-
-                </p>
                 <p>
                 Let's look at the "standard" implementation:
                 </p>
@@ -175,7 +174,7 @@ void update(int pos, int val, int tl=0, int tr=n, int v=0) {
                     </code></pre>
                 </details>
                 <h3>Level Order</h3>
-                <p>Let's revisit the "standard" max-heap implementation:
+                <p>Let's revisit the "standard" max-heap implementation:</p>
                 <ul>
                     <li>It's a <a href="https://en.wikipedia.org/wiki/Binary_tree#Types_of_binary_trees">complete binary tree</a></li>
                     <li>It uses the <a href="https://en.algorithmica.org/hpc/data-structures/binary-search/#eytzinger-layout">Eytzinger Layout</a> (in our case, shifted down by one), thus:
@@ -184,21 +183,18 @@ void update(int pos, int val, int tl=0, int tr=n, int v=0) {
                             <li>node <code>v</code>'s left child has index <code>2*v+1</code>, right child has index <code>2*v+2</code>
                                 <details>
                                     <summary>how to derive this</summary>
-                                    <p>
                                     <ol>
                                         <li>"shift" up 1</li>
                                         <li>apply right child formula</li>
                                         <li>"shift" down 1</li>
                                     </ol>
                                     like: <code>(2*(v+1)+1)-1</code>
-                                    <p>
                                 </details>
                             </li>
                             <li>the <code>k</code> nodes have distinct indexes in range <code>[0, k-1]</code> (this is only true because it's complete)</li>
                         </ul>
                     </li>
                 </ul>
-                </p>
                 <img src="bst_level_order.png" alt="bst level order" style="width:540px;height:auto;">
                 <p>Let's try to make this indexing layout work for segment trees. But there's a problem. Usually for segtrees, each node <code>v</code> has:</p>
                 <ol>
