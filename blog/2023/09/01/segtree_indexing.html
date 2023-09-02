@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Segment Tree Indexing</title>
+        <link rel="stylesheet" href="/style.css">
+        <link rel="stylesheet" href="/highlight/styles/github.min.css">
+        <script src="/highlight/highlight.min.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', (event) => {
+                document.querySelectorAll('pre code').forEach((block) => {
+                    hljs.highlightBlock(block);
+                });
+            });
+        </script>
+    </head>
+    <body>
+        <script type="text/javascript" language="javascript" src="/navagation_bar.js"></script>
+        <div class="body">
+            <div class="heading">
+                <h1 class="main_title">Segment Tree Indexing and Tree Traversals</h1>
+                <h2 class="blog_date">2023 September 1</h2>
+            </div>
+            <br>
+            <div class="main_content">
+                <h3>Background</h3>
+                <p>
+For background about what a segment tree is, I recommend the
+                <a href="https://cp-algorithms.com/data_structures/segment_tree.html">CP algorithms article</a>.
+                </p>
+                <hr>
+                <p>
+                The
+<a href="https://cp-algorithms.com/data_structures/segment_tree.html#implementation">standard implementation</a>
+of a segment tree uses an array <code>t</code> of size <code>4*n</code>.
+                This blog discusses 3 different ways how to index the
+                nodes in a segment tree to achieve (optimal) <code>2*n-1</code> memory.
+                </p>
+                <details>
+                    <summary>why is <code>2*n-1</code> optimal?</summary>
+                    <ul>
+                        <li>A segment tree has <code>n</code> leaf nodes; 1 for each of the <code>n</code> elements in the array</li>
+                        <li>A segment tree is a <a href="https://en.wikipedia.org/wiki/Binary_tree#Types_of_binary_trees">full binary tree</a>; each internal node has exactly 2 children. Thus there are <code>n-1</code> internal nodes.</li>
+                        <img src="bst_leaf_vs_internal_nodes.png" alt="leaf versus internal" style="width:540px;height:auto;">
+                    </ul>
+                </details>
+                <p>
+                Let's look at the "standard" implementation:
+                </p>
+
+                <details>
+                    <summary>code</summary>
+                    <pre><code class="language-cpp">
+const int MAXN = 500'000;
+int n;
+long long t[4*MAXN];
+
+void build(int a[], int tl=0, int tr=n, int v=1) {
+    if (tr - tl == 1) {
+        t[v] = a[tl];
+    } else {
+        int tm = (tl+tr)/2;
+        build(a, tl, tm, 2*v);
+        build(a, tm, tr, 2*v+1);
+        t[v] = t[2*v] + t[2*v+1];
+    }
+}
+
+long long query(int l, int r, int tl=0, int tr=n, int v=1) {
+    if (r <= tl || tr <= l) return 0LL;
+    if (l <= tl && tr <= r) return t[v];
+    int tm = (tl+tr)/2;
+    return query(l, r, tl, tm, 2*v)
+         + query(l, r, tm, tr, 2*v+1);
+}
+
+void update(int pos, int val, int tl=0, int tr=n, int v=1) {
+    if (tr - tl == 1) {
+        t[v] += val;
+    } else {
+        int tm = (tl+tr)/2;
+        if (pos < tm)
+            update(pos, val, tl, tm, 2*v);
+        else
+            update(pos, val, tm, tr, 2*v+1);
+        t[v] = t[2*v] + t[2*v+1];
+    }
+}
+                    </code></pre>
+                </details>
+                <p>
+                Notes:
+                </p>
+                <ul>
+                    <li>Update: do <code>a[pos] += val</code></li>
+                    <li>Query: calculate <code>a[l] + a[l+1] + ... + a[r-1]</code></li>
+                    <li>The node with index <code>v</code> has inclusive-exclusive range <code>[tl, tr)</code></li>
+                    <li>Range <code>[tl, tr)</code> splits into ranges <code>[tl, tm)</code> and <code>[tm, tr)</code></li>
+                    <li>Node <code>v</code> has children <code>2*v</code>, <code>2*v+1</code>, and parent <code>v/2</code>. This is known as the <a href="https://en.algorithmica.org/hpc/data-structures/binary-search/#eytzinger-layout">Eytzinger Layout</a>.</li>
+                </ul>
+                <p>
+                Our approach to optimize the memory will be to take some traversial of the tree, and index the nodes <code>0,1,...,2*n-2</code> in order of this traversial. Now there many ways to traverse a binary tree:
+                </p>
+                <ul>
+                    <li>Pre order (dfs)</li>
+                    <li>In order (dfs)</li>
+                    <li>Post order (dfs)</li>
+                    <li>Level order (bfs)</li>
+                </ul>
+                <p>But pre order and post order are symmetrical, so I'll only focus on pre order.</p>
+                <h3>Pre Order</h3>
+                <p>An example of labeling the pre-order of a full binary tree
+                <code>0,1,2,...</code></p>
+                <img src="bst_pre_order.png" alt="bst pre order" style="width:540px;height:auto;">
+                <p>
+                Observations:
+                </p>
+                <ul>
+                    <li>The root is <code>0</code></li>
+                    <li>A node <code>v</code>'s left child has index <code>v+1</code></li>
+                    <li>A node <code>v</code>'s right child has index <code>v+1+(size of left subtree)</code></li>
+                    <li>In a segment tree, a node with range <code>[tl, tr)</code> has subtree size = <code>2*(tr-tl)-1</code>
+                                <details>
+                                    <summary>how to derive this</summary>
+                                    <ol>
+                                        <li>range <code>[tl, tr)</code> contains <code>tr-tl</code> leaf nodes representing <code>a[tl], a[tl+1], ..., a[tr-1]</code></li>
+                                        <li>In a full binary tree, any subtree with <code>k</code> leaves will have <code>k-1</code> internal nodes</li>
+                                    </ol>
+                                </details>
+
+                    </li>
+                </ul>
+                <p>So we can code segment trees with <code>2*n</code> memory like:</p>
+
+                <details>
+                    <summary>code</summary>
+                    <pre><code class="language-cpp">
+const int MAXN = 500'000;
+int n;
+long long t[2*MAXN];
+
+void build(int a[], int tl=0, int tr=n, int v=0) {
+    if (tr - tl == 1) {
+        t[v] = a[tl];
+    } else {
+        int tm = (tl+tr)/2;
+        build(a, tl, tm, v+1);
+        build(a, tm, tr, v+2*(tm-tl));
+        t[v] = t[v+1] + t[v+2*(tm-tl)];
+    }
+}
+
+long long query(int l, int r, int tl=0, int tr=n, int v=0) {
+    if (r <= tl || tr <= l) return 0LL;
+    if (l <= tl && tr <= r) return t[v];
+    int tm = (tl+tr)/2;
+    return query(l, r, tl, tm, v+1)
+         + query(l, r, tm, tr, v+2*(tm-tl));
+}
+
+void update(int pos, int val, int tl=0, int tr=n, int v=0) {
+    if (tr - tl == 1) {
+        t[v] += val;
+    } else {
+        int tm = (tl+tr)/2;
+        if (pos < tm)
+            update(pos, val, tl, tm, v+1);
+        else
+            update(pos, val, tm, tr, v+2*(tm-tl));
+        t[v] = t[v+1] + t[v+2*(tm-tl)];
+    }
+}
+                    </code></pre>
+                </details>
+                <h3>Level Order</h3>
+                <p>Let's revisit the "standard" max-heap implementation:</p>
+                <ul>
+                    <li>It's a <a href="https://en.wikipedia.org/wiki/Binary_tree#Types_of_binary_trees">complete binary tree</a></li>
+                    <li>It uses the <a href="https://en.algorithmica.org/hpc/data-structures/binary-search/#eytzinger-layout">Eytzinger Layout</a> (in our case, shifted down by one), thus:
+                        <ul>
+                            <li>The root is <code>0</code></li>
+                            <li>node <code>v</code>'s left child has index <code>2*v+1</code>, right child has index <code>2*v+2</code>
+                                <details>
+                                    <summary>how to derive this</summary>
+                                    <ol>
+                                        <li>"shift" up 1</li>
+                                        <li>apply right child formula</li>
+                                        <li>"shift" down 1</li>
+                                    </ol>
+                                    like: <code>(2*(v+1)+1)-1</code>
+                                </details>
+                            </li>
+                            <li>the <code>k</code> nodes have distinct indexes in range <code>[0, k-1]</code> (this is only true because it's complete)</li>
+                        </ul>
+                    </li>
+                </ul>
+                <img src="bst_level_order.png" alt="bst level order" style="width:540px;height:auto;">
+                <p>Let's try to make this indexing layout work for segment trees. But there's a problem. Usually for segtrees, each node <code>v</code> has:</p>
+                <ol>
+                    <li>range <code>[tl, tr)</code></li>
+                    <li>subtree size <code>2*(tr-tl)-1</code></li>
+                    <li>midpoint <code>(tl+tr)/2</code></li>
+                </ol>
+                <details>
+                    <summary>Do you see the problem?</summary>
+                    <ol>
+                        <li>In a segtree, the range is split in half (<code>tm=(tl+tr)/2</code>), so <code>v</code>'s left, right subtree sizes are off-by-2</li>
+                        <li>But for a complete binary tree, the left/right subtree sizes aren't necessarity off-by-2</li>
+                    </ol>
+                </details>
+                <p>So we have to calculate the midpoint differently. It turns out the correct way to calculate it is:</p>
+
+                <pre><code class="language-cpp">
+int split(int tl, int tr) {
+    int pow_2 = 1 << __lg(tr-tl);
+    return min(tl+pow_2, tr-pow_2/2);
+}
+                </code></pre>
+                <p>
+                Note it is no longer the middle of range (e.g. "mid" point), hence the name split. For a proof, see my <a href="https://codeforces.com/blog/entry/112755">codeforces blog</a>.
+                </p>
+                <p>We can code segment trees like:</p>
+                <details>
+                    <summary>code</summary>
+                    <pre><code class="language-cpp">
+int split(int tl, int tr) {
+    int pow_2 = 1 << __lg(tr-tl);
+    return min(tl+pow_2, tr-pow_2/2);
+}
+
+const int MAXN = 500'000;
+int n;
+long long t[2*MAXN];
+
+void build(int a[], int tl=0, int tr=n, int v=0) {
+    if (tr - tl == 1) {
+        t[v] = a[tl];
+    } else {
+        int tm = split(tl, tr);
+        build(a, tl, tm, 2*v+1);
+        build(a, tm, tr, 2*v+2);
+        t[v] = t[2*v+1] + t[2*v+2];
+    }
+}
+
+long long query(int l, int r, int tl=0, int tr=n, int v=0) {
+    if (r <= tl || tr <= l) return 0LL;
+    if (l <= tl && tr <= r) return t[v];
+    int tm = split(tl, tr);
+    return query(l, r, tl, tm, 2*v+1)
+         + query(l, r, tm, tr, 2*v+2);
+}
+
+void update(int pos, int val, int tl=0, int tr=n, int v=0) {
+    if (tr - tl == 1) {
+        t[v] += val;
+    } else {
+        int tm = split(tl, tr);
+        if (pos < tm)
+            update(pos, val, tl, tm, 2*v+1);
+        else
+            update(pos, val, tm, tr, 2*v+2);
+        t[v] = t[2*v+1] + t[2*v+2];
+    }
+}
+                    </code></pre>
+                </details>
+                <h3>In Order</h3>
+                <p>An example of labeling the in-order of a full binary tree
+                <code>0,1,2,...</code></p>
+                <img src="bst_inorder.png" alt="bst in order" style="width:540px;height:auto;">
+                <p>
+                It turns out if we switch to inclusive-inclusive ranges and
+                give a node with range <code>[tl, tr]</code> the index
+                <code>(tl + tr) | (tl != tr)</code>, the indexes will be
+                distinct and lie in range <code>[0, 2*n-2]</code> (<a
+                href="https://codeforces.com/blog/entry/112755#comment-1004569">source</a>).
+                </p>
+                <p>We can code segment trees like:</p>
+                <details>
+                    <summary>code</summary>
+                    <pre><code class="language-cpp">
+int index(int tl, int tr) {
+    return (tl + tr) | (tl != tr);
+}
+
+const int MAXN = 500'000;
+int n;
+long long t[2*MAXN];
+
+void build(int a[], int tl=0, int tr=n-1) {
+    if (tl == tr) {
+        t[index(tl, tr)] = a[tl];
+    } else {
+        int tm = (tl+tr)/2;
+        build(a, tl, tm);
+        build(a, tm+1, tr);
+        t[index(tl, tr)] = t[index(tl, tm)] + t[index(tm+1, tr)];
+    }
+}
+
+long long query(int l, int r, int tl=0, int tr=n-1) {
+    if (r < tl || tr < l) return 0LL;
+    if (l <= tl && tr <= r) return t[index(tl, tr)];
+    int tm = (tl+tr)/2;
+    return query(l, r, tl, tm)
+         + query(l, r, tm+1, tr);
+}
+
+void update(int pos, int val, int tl=0, int tr=n-1) {
+    if (tl == tr) {
+        t[index(tl, tr)] += val;
+    } else {
+        int tm = (tl+tr)/2;
+        if (pos <= tm)
+            update(pos, val, tl, tm);
+        else
+            update(pos, val, tm+1, tr);
+        t[index(tl, tr)] = t[index(tl, tm)] + t[index(tm+1, tr)];
+    }
+}
+                    </code></pre>
+                </details>
+            </div>
+        </div>
+    </body>
+</html>
