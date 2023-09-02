@@ -275,24 +275,57 @@ void update(int pos, int val, int tl=0, int tr=n, int v=0) {
                 <code>0,1,2,...</code></p>
                 <img src="bst_inorder.png" alt="bst in order" style="width:540px;height:auto;">
                 <p>
-                Observations:
+                It turns out if we switch to inclusive-inclusive ranges and
+                give a node with range <code>[tl, tr]</code> the index
+                <code>(tl + tr) | (tl != tr)</code>, the indexes will be
+                distinct and lie in range <code>[0, 2*n-2]</code> (<a
+                href="https://codeforces.com/blog/entry/112755#comment-1004569">source</a>).
                 </p>
-                <ul>
-                    <li>The root is <code>0</code></li>
-                    <li>A node <code>v</code>'s left child has index <code>v+1</code></li>
-                    <li>A node <code>v</code>'s right child has index <code>v+1+(size of left subtree)</code></li>
-                    <li>In a segment tree, a node with range <code>[tl, tr)</code> has subtree size = <code>2*(tr-tl)-1</code>
-                                <details>
-                                    <summary>how to derive this</summary>
-                                    <ol>
-                                        <li>range <code>[tl, tr)</code> contains <code>tr-tl</code> leaf nodes representing <code>a[tl], a[tl+1], ..., a[tr-1]</code></li>
-                                        <li>In a full binary tree, any subtree with <code>k</code> leaves will have <code>k-1</code> internal nodes</li>
-                                    </ol>
-                                </details>
+                <p>We can code segment trees like:</p>
+                <details>
+                    <summary>code</summary>
+                    <pre><code class="language-cpp">
+int index(int tl, int tr) {
+    return (tl + tr) | (tl != tr);
+}
 
-                    </li>
-                </ul>
+const int MAXN = 500'000;
+int n;
+long long t[2*MAXN];
 
+void build(int a[], int tl=0, int tr=n-1) {
+    if (tl == tr) {
+        t[index(tl, tr)] = a[tl];
+    } else {
+        int tm = (tl+tr)/2;
+        build(a, tl, tm);
+        build(a, tm+1, tr);
+        t[index(tl, tr)] = t[index(tl, tm)] + t[index(tm+1, tr)];
+    }
+}
+
+long long query(int l, int r, int tl=0, int tr=n-1) {
+    if (r < tl || tr < l) return 0LL;
+    if (l <= tl && tr <= r) return t[index(tl, tr)];
+    int tm = (tl+tr)/2;
+    return query(l, r, tl, tm)
+         + query(l, r, tm+1, tr);
+}
+
+void update(int pos, int val, int tl=0, int tr=n-1) {
+    if (tl == tr) {
+        t[index(tl, tr)] += val;
+    } else {
+        int tm = (tl+tr)/2;
+        if (pos <= tm)
+            update(pos, val, tl, tm);
+        else
+            update(pos, val, tm+1, tr);
+        t[index(tl, tr)] = t[index(tl, tm)] + t[index(tm+1, tr)];
+    }
+}
+                    </code></pre>
+                </details>
             </div>
         </div>
     </body>
