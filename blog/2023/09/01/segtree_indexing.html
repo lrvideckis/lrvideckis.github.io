@@ -311,18 +311,22 @@ void update(int pos, int val, int tl=0, int tr=n, int v=0) {
                 </ul>
                 <hr>
                 <p>
-                Now recall for segment trees, for each of the <code>n-1</code>
-                internal nodes: their range <code>[tl, tr)</code> splits into
-                ranges: <code>[tl, tm)</code>, <code>[tm, tr)</code>.
+                Let's look at the same tree, with ranges and midpoints
+                included. What can you observe about the midpoints?
                 </p>
+                <img src="bst_midpoints.png" alt="bst midpoints" style="width:540px;height:auto;">
                 <p>
-                Main observation: the set of <code>n-1</code> midpoints
-                (<code>tm</code>) are distinct, and lie in <code>[1,
-                    n-1]</code>. Furthermore, for an internal node <code>v</code> with midpoint <code>tm</code>:
+                Observations:
                 </p>
                 <ul>
-                    <li>All internal nodes in <code>v</code>'s left subtree have midpoint <code>&lt;tm</code></li>
-                    <li>All internal nodes in <code>v</code>'s right subtree have midpoint <code>&gt;tm</code></li>
+                    <li>the set of <code>n-1</code> midpoints (<code>tm</code>) are distinct, and lie in <code>[1, n-1]</code></li>
+                    <li>
+                        BST-property for midpoints: for an internal node <code>v</code> with midpoint <code>tm</code>:
+                        <ul>
+                            <li>All internal nodes in <code>v</code>'s left subtree have midpoint <code>&lt;tm</code></li>
+                            <li>All internal nodes in <code>v</code>'s right subtree have midpoint <code>&gt;tm</code></li>
+                        </ul>
+                    </li>
                 </ul>
                 <p>So we have to map the midpoints in <code>[1, n-1]</code> to odd indexes in <code>[0,2*n-2]</code> with the function <code>f(midpoint) = 2*midpoint-1</code> = in-order index</p>
                 <p>Leaves each have range <code>[tl, tl+1)</code> which we can map to an even index <code>2*tl</code>. So we can write a function like:</p>
