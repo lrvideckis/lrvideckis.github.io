@@ -134,7 +134,7 @@ void update(int pos, int val, int tl=0, int tr=n, int v=1) {
 
                     </li>
                 </ul>
-                <p>So we can code segment trees with <code>2*n</code> memory like:</p>
+                <p>So we can code segment trees with <code>2*n-1</code> memory like:</p>
 
                 <details>
                     <summary>code</summary>
@@ -209,7 +209,7 @@ void update(int pos, int val, int tl=0, int tr=n, int v=0) {
                     <summary>Do you see the problem?</summary>
                     <ol>
                         <li>In a segtree, the range is split in half (<code>tm=(tl+tr)/2</code>), so <code>v</code>'s left, right subtree sizes are off-by-2</li>
-                        <li>But for a complete binary tree, the left/right subtree sizes aren't necessarity off-by-2</li>
+                        <li>But for a complete binary tree, the left/right subtree sizes aren't necessarily off-by-2</li>
                     </ol>
                 </details>
                 <p>So we have to calculate the midpoint differently. It turns out the correct way to calculate it is:</p>
