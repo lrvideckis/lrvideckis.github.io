@@ -325,7 +325,7 @@ void update(int pos, int val, int tl=0, int tr=n, int v=0) {
                     <li>All internal nodes in <code>v</code>'s right subtree have midpoint <code>&gt;tm</code></li>
                 </ul>
                 <p>So we have to map the midpoints in <code>[1, n-1]</code> to odd indexes in <code>[0,2*n-2]</code> with the function <code>f(midpoint) = 2*midpoint-1</code> = in-order index</p>
-                <p>Leaves each have range <code>[tl, tl+1)</code> which we can map to an even index <code>2*le</code>. So we can write a function like:</p>
+                <p>Leaves each have range <code>[tl, tl+1)</code> which we can map to an even index <code>2*tl</code>. So we can write a function like:</p>
                 <pre><code class="language-cpp">
 int in_order(int tl, int tr) {
     return tr-tl > 1 ? (tl+tr)/2*2-1 : 2*tl;
