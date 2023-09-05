@@ -99,6 +99,7 @@ void update(int pos, int val, int tl=0, int tr=n, int v=1) {
                     <li>Range <code>[tl, tr)</code> splits into ranges <code>[tl, tm)</code> and <code>[tm, tr)</code></li>
                     <li>Node <code>v</code> has children <code>2*v</code>, <code>2*v+1</code>, and parent <code>v/2</code>. This is known as the <a href="https://en.algorithmica.org/hpc/data-structures/binary-search/#eytzinger-layout">Eytzinger Layout</a>.</li>
                 </ul>
+                <hr>
                 <p>
                 Our approach to optimize the memory will be to take some traversial of the tree, and index the nodes <code>0,1,...,2*n-2</code> in order of this traversial. Now there many ways to traverse a binary tree:
                 </p>
