@@ -14,6 +14,7 @@
                 });
             });
         </script>
+        <script src="/mathjax/es5/tex-chtml.js" id="MathJax-script" async></script>
     </head>
     <body>
         <script type="text/javascript" language="javascript" src="/navagation_bar.js"></script>
@@ -94,7 +95,7 @@ void update(int pos, int val, int tl=0, int tr=n, int v=1) {
                 </p>
                 <ul>
                     <li>Update: do <code>a[pos] += val</code></li>
-                    <li>Query: calculate <code>a[l] + a[l+1] + ... + a[r-1]</code></li>
+                    <li>Query: calculate $$\sum\limits_{i=l}^{r-1} a[i]$$</li>
                     <li>The node with index <code>v</code> has inclusive-exclusive range <code>[tl, tr)</code></li>
                     <li>Range <code>[tl, tr)</code> splits into ranges <code>[tl, tm)</code> and <code>[tm, tr)</code></li>
                     <li>Node <code>v</code> has children <code>2*v</code>, <code>2*v+1</code>, and parent <code>v/2</code>. This is known as the <a href="https://en.algorithmica.org/hpc/data-structures/binary-search/#eytzinger-layout">Eytzinger Layout</a>.</li>
