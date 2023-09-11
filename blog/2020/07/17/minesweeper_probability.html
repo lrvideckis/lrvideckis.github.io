@@ -263,197 +263,265 @@ Define \(f \colon C \to \{true,false\}\) as follows:
                 </p>
 
                 <h3>Matrices and Local Deductions</h3>
+                <p>
+                Minesweeper can be reduced to
+                <a href="https://massaioli.wordpress.com/2013/01/12/solving-minesweeper-with-matricies/">solving a system of linear equations</a>.
+                Combining this with
+                <a href="https://stackoverflow.com/a/4356982">local deductions</a>
+                is a good approach to determining whether certain moves are
+                save. What if we ran these 2 approaches first, before splitting
+                the board by components? Any deducible squares which these 2
+                approaches give can be used to split components, reducing their
+                size.
+                </p>
+                <img src="backtracking_local_deductions_pseudo_code.png" alt="backtracking local deductions pseudo code" style="width:540px;height:auto;">
+                <p>An example:</p>
+                <img src="before_local.png" alt="before local" style="width:270px;height:auto;">
+                <img src="after_local.png" alt="after local" style="width:270px;height:auto;">
+                <p>
+                The [green/red] squares are the squares where running local
+                deductions determined they [didn't/did] have mines. Notice
+                local deductions have failed to find all possible deducible
+                squares (there's a 2-1 pattern on the top row).
+                </p>
+                <p>
+                Before running local deductions, there is 1 component with 28
+                squares. The backtracking would have taken \(\sim 28\cdot2^{28} = 7,516,192,768\)
+                operations. After running local deductions, there's 1 component
+                with 9 non-deduced squares
+                (\(9\cdot2^9 = 4,608\)).
+                </p>
+                <p>
+                Although this optimization seems like it would help a lot,
+                there are many cases where this optimization doesn't help out
+                much (for example, consider if there are no deducible squares).
+                </p>
+                <h4>Further Splitting of Components</h4>
+                <p>
+                Let's define the problem: You are given a <i>single</i>
+                component of \(n\) squares (labeled 1, 2, ..., n). Find:
+                </p>
+                <ul>
+                    <li>\(\#configs[]\) defined as:  \(\#configs[i]\) = the number of mine configurations with \(i\) mines, (\(0 \leq i \leq M\))</li>
+                    <li>\(\#configsWithJMine[][]\) defined as: \(\#configsWithJMine[i][j]\) = the number of mine configurations which have \(i\) mines, and square \(j\) is a mine, (\(0 \leq i \leq M, 1 \leq j \leq n\))</li>
+                </ul>
+                <p>
+                This of course can be solved with recursive backtracking in
+                \(\mathcal{O}(n\cdot2^n)\). Let's try to solve this problem
+                faster as it is usually the bottleneck of the entire mine
+                probability calculation (every other step runs in polynomial
+                time).
+                </p>
+                <p>
+                Consider the following board.
+                </p>
+                <img src="board_before_splitting_by_cut_nodes.png" alt="board before splitting by cut nodes" style="width:170px;height:auto;">
+                <p>
+                Imagine if we somehow "removed" the un-discovered square next to the 1.
+                </p>
+                <img src="board_middle_of_splitting_by_cut_nodes.png" alt="board middle of splitting by cut nodes" style="width:170px;height:auto;">
+                <p>
+                Then, the board would contain 2 components.
+                </p>
+                <img src="board_after_splitting_by_cut_nodes.png" alt="board after splitting by cut nodes" style="width:170px;height:auto;">
+                <p>
+                Now, what if we ran the backtracking <i>independently</i> on
+                both the blue and yellow components, and then somehow combined
+                the results? In this way, we can take a single component, and
+                split it further into \(\geq 2\) smaller components.
+                </p>
+                <p>
+                But why limit ourselves to splitting a single component once?
+                Notice, we have to solve the exact same problem for both the
+                blue and yellow components. Thus, why solve it with
+                backtracking, when we can again use the same trick of
+                "removing" squares? This leads to the following recursive
+                algorithm.
+                </p>
+                <img src="solve_component_recursively_pseudo_code.png" alt="solve component recursively pseudo code" style="width:540px;height:auto;">
+                <p>
+                Here, the "split" squares are the squares which we remove to
+                split up the original component. Before diving into the reasons
+                why this algorithm is still exponential, I'll explain the
+                following parts:
+                </p>
+                <ul>
+                    <li>the \(findSplitSquares\) function</li>
+                    <li>combining results</li>
+                </ul>
+                <h4>Finding Split Squares</h4>
+                <p>
+                First, we don't have to limit ourselves to removing just 1
+                square to split components. Although, assuming we remove \(k\)
+                squares, it turns out the combine step will take
+                \(\mathcal{O}(2^k)\) time. So in my implementation, I
+                arbitrarily chose 6 as an upper bound on the number of split
+                squares.
+                </p>
+                <p>
+                Finding split squares requires representing the minesweeper board as a graph:
+                </p>
+                <ul>
+                    <li>squares are nodes</li>
+                    <li>2 squares share an edge if there exists a number next to both squares</li>
+                </ul>
+                <p>
+                For example this board,
+                <img src="board_as_graph_2.png" alt="board as graph 2" style="width:170px;height:auto;">,
+                produces the following graph:
+                </p>
+                <img src="Drawing.png" alt="Drawing" style="width:300px;height:auto;">
+                <p>
+                Notice that if node 4 is removed, then the graph would split
+                into 2 connected components. Thus node 4 is an
+                <a href="https://cp-algorithms.com/graph/cutpoints.html">articulation node</a>.
+                The first attempt would be to choose \(\leq\) 6 articulation nodes
+                from the graph to remove. Although this approach would
+                fail on grids such as:
+                <img src="board_with_no_cut_nodes.png" alt="board with no cut nodes" style="width:160px;height:auto;">
+                whose graphs have no articulation nodes. So let's find a more
+                generalized solution.
+                </p>
+                <p>
+                Ideally, we would want to remove \(\leq\) 6 nodes such that the
+                size of the largest component is minimized. Unfortunately, the
+                generalized problem of finding k nodes to remove to minimize
+                the size of the largest remaining component
+                <a href="https://cs.stackexchange.com/q/12789">is NP-complete</a>.
+                But this isn't as relevant as you'd think. There are at least 2
+                options:
+                </p>
+                <ul>
+                    <li>
+                        employ an approximation algorithm such as
+                        <a href="https://supernet.isenberg.umass.edu/hlogistics/slides/Pardalos-Bellago-Nagurney.pdf#page=38">the 2-exchange method</a>
+                    </li>
+                    <li>
+                        employ a brute force approach similar to
+                        <a href="https://cs.stackexchange.com/questions/12789/find-which-vertices-to-delete-from-graph-to-get-smallest-largest-component#comment27752_12809">this comment</a>.
+                        Brute force here is okay since we're only removing
+                        \(\leq\) 6 nodes (thus is exponential in 6).
+                    </li>
+                </ul>
+                <h4>Combining Results</h4>
+                <p>
+                Recall the problem: you are given a <i>single</i> component of \(n\) squares (labeled 1, 2, ..., n). Find:
+                </p>
+                <ul>
+                    <li>\(\#configs[]\) defined as:  \(\#configs[i]\) = the number of mine configurations with \(i\) mines, (\(0 \leq i \leq M\))</li>
+                    <li>\(\#configsWithJMine[][]\) defined as: \(\#configsWithJMine[i][j]\) = the number of mine configurations which have \(i\) mines, and square \(j\) is a mine, (\(0 \leq i \leq M, 1 \leq j \leq n\))</li>
+                </ul>
+                <p>
+                I'll only explain how to calculate \(\#configs[]\) as
+                \(\#configsWithJMine[][]\) is calculated very similarly.
+                </p>
+                <hr>
+                <p>
+                To understand this section, it'll help to know about
+                <a href="https://codeforces.com/blog/entry/337">dynamic programming with bitmasks</a>.
+                </p>
+                <hr>
+                <p>Consider this example board again:</p>
+                <img src="board_after_splitting_by_cut_nodes.png" alt="board after splitting by cut nodes" style="width:170px;height:auto;">
+                <p>
+                Our goal is to calculate some sub-result (not necessarily
+                \(\#configs[]\)) for both the blue and yellow components, and
+                then calculate the same sub-result for the original component.
+                Also, we have to be able to calculate \(\#configs[]\) from this
+                sub-result.
+                </p>
+                <p>
+                The sub-result is an array \(dp[][]\) defined as:
+                \(dp[mask][i]\) = the number of mine configurations with \(i\)
+                mines under the restriction that if and only if the \(j\)-th
+                bit in \(mask\) is 1, then there is a mine in the \(j\)-th
+                removed square.
+                </p>
+                <p>
+                Since the above example has only 1 removed square we consider 2 cases:
+                </p>
+                <ul>
+                    <li>the removed square is a mine \(\left(mask = 1\right)\)</li>
+                    <li>the removed square is not a mine \(\left(mask = 0\right)\)</li>
+                </ul>
+                <p>
+                If the removed square is a mine, we have
+                \[dpOriginal[1][i] = \sum \limits_{j=0}^{i+1} dpBlue[1][j] \cdot dpYellow[1][i+1-j]\]
+                where:
+                </p>
+                <ul>
+                    <li>\(dpOriginal[][]\) is the \(dp[][]\) array corresponding to the original component</li>
+                    <li>\(dpBlue[][]\) is the \(dp[][]\) array corresponding to the blue component</li>
+                    <li>\(dpYellow[][]\) is the \(dp[][]\) array corresponding to the yellow component</li>
+                </ul>
+                <p>
+                Notice the upper bound on the sum is curiously
+                \(\left(i+1\right)\). Both the blue and yellow components have
+                a mine in the removed square. Thus we end up double counting
+                this mine. The \(\left(i+1\right)\) upper limit cancels out
+                with the double counting to get the correct result.
+                </p>
+                <p>
+                If the removed square is not a mine, we have
+                \[dpOriginal[0][i] = \sum \limits_{j=0}^i dpBlue[0][j] \cdot dpYellow[0][i-j].\]
+                Assuming there are \(k\) removed squares \(\left(k \leq 6\right)\), we have
+                \[\#configs[i] = \sum \limits_{mask=0}^{2^k-1} dp[mask][i].\]
+                Here, there are \(2^k\) masks as there are \(2^k\) possible
+                ways to place mines among the \(k\) removed squares.
+                </p>
+                <p>
+                Finally, the original recursive call has 0 removed squares, so
+                \(2^0 = 1\), there's 1 possible mask \(\left(mask = 0\right)\),
+                and the \(\#configs\) array is stored in \(dp[0].\)
+                </p>
+                <hr>
+                <p>
+                In this example, the original component was split into 2
+                sub-components, but in general, the original component can be
+                split into \(k\) sub-components. It is possible to generalize
+                this knapsack-like dynamic programming to work for \(k\)
+                sub-components.
+                </p>
+                <p>
+                There is a tricky case where a clue is surrounded by only
+                "removed" squares. Make sure to skip the masks which have the
+                incorrect number of mines for these clues.
+                </p>
+                <h4>Discussion on this Recursive Algorithm</h4>
+                <p>
+                Why is this algorithm still exponential? Consider the case
+                where all of the \(\binom{n}{\leq 6}\) subsets of nodes to
+                remove don't decrease the size of the component (there's still
+                1 component after removing nodes). In this case, we're forced
+                to solve the problem with normal recursive backtracking in
+                \(\mathcal{O}(n\cdot2^n)\). Although in practice, this case is
+                super rare.
+                </p>
+                <p>
+                Where does the speedup come from with this recursive approach?
+                For recursive backtracking, even with the best possible
+                pruning, you'll still hit the base case once for every mine
+                configuration. Thus, recursive backtracking has a lower bound
+                of \(\Omega\left(\text{number of mine configurations}\right)\).
+                This new recursive approach doesn't have the same lower bound,
+                and thus potentially can be faster (and is faster in practice).
+                </p>
+                <p>
+                Finally, here's a picture of the recursion tree for the board:
+                <img src="recursion_tree_removed_nodes.png" alt="recursion tree removed nodes" style="width:300px;height:auto;">.
+                Here, the squares marked with an "R" are articulation nodes in
+                the corresponding graph. If you remove any of the "R" squares,
+                the board will split into 2 components (not considering the
+                flagged squares).
+                </p>
+                <img src="recursion_tree_final.png" alt="recursion tree final" style="width:540px;height:auto;">.
+                <ul>
+                    <li>Each node in this tree represents a single recursive call</li>
+                    <li>Squares surrounded in black are in the sub-component in the current recursive call</li>
+                    <li>Squares surrounded in both black and red are the "removed" squares which are used to further split the current component</li>
+                    <li>Leaf node components are solved with recursive backtracking</li>
+                </ul>
             </div>
         </div>
     </body>
 </html>
-
-
-
-Minesweeper can be reduced to \href{https://massaioli.wordpress.com/2013/01/12/solving-minesweeper-with-matricies/}{solving a system of linear equations}. Combining this with \href{https://stackoverflow.com/a/4356982}{local deductions} is a good approach to determining whether certain moves are save. What if we ran these 2 approaches first, before splitting the board by components? Any deducible squares which these 2 approaches give can be used to split components, reducing their size.
-
-\begin{algorithm}[H]
-\caption{Backtracking and Local Deductions}
-\begin{algorithmic}
- \While{$\text{found any local deductions}$}
-     \State \text{save deductions} \Comment{these can be used to find further deductions}
- \EndWhile
-
-  \State %
-%
-\sbox0{$\vcenter{\hbox{$\begin{array}{|c|c|c|}
-  \hline
-  \text{comp. 1} & \ldots & \text{comp. n} \\ \hline
-\end{array}$}}$}%
-%
-components $\leftarrow
-  \underbrace{\vrule width0pt depth \dimexpr\dp0 + .3ex\relax\copy0}_{n}%
-$ \Comment{split by deduced squares}
-
- \For{$i \gets 1$ to $n$}
-    \State\Call{backtracking}{$components[i]$}
- \EndFor
-
-\end{algorithmic}
-\end{algorithm}
-An example: \\
-
-\includegraphics[width=6cm, height=6cm]{images/before_local}
-\hspace{.1cm}
-\includegraphics[width=6cm, height=6cm]{images/after_local}
-
-The [green/red] squares are the squares where running local deductions determined they [didn't/did] have mines. Notice local deductions have failed to find all possible deducible squares (there's a 2-1 pattern on the top row).
-
-Before running local deductions, there is 1 component with 28 squares. The backtracking would have taken \(\sim 28\cdot2^{28} = 7,516,192,768\) operations. After running local deductions, there's 1 component with 9 non-deduced squares (\(9\cdot2^9 = 4,608\)).
-
-Although this optimization seems like it would help a lot, there are many cases where this optimization doesn't help out much (for example, consider if there are no deducible squares).
-
-\subsection{Further Splitting of Components}
-
-Let's define the problem: You are given a \emph{single} component of \(n\) squares (labeled 1, 2, ..., n). Find:
-\begin{itemize}
-    \item  \(\#configs[]\) defined as:  \(\#configs[i]\) = the number of mine configurations with \(i\) mines, (\(0 \leq i \leq M\))
-    \item \(\#configsWithJMine[][]\) defined as: \(\#configsWithJMine[i][j]\) = the number of mine configurations which have \(i\) mines, and square \(j\) is a mine, (\(0 \leq i \leq M, 1 \leq j \leq n\))
-\end{itemize}
-
-This of course can be solved with recursive backtracking in \(\mathcal{O}(n\cdot2^n)\). Let's try to solve this problem faster as it is usually the bottleneck of the entire mine probability calculation (every other step runs in polynomial time).\\
-\\
-Consider the following board. \\
-
-\includegraphics[scale=0.15]{images/board_before_splitting_by_cut_nodes} \\
-
-Imagine if we somehow ``removed" the un-discovered square next to the 1.\\
-
-\includegraphics[scale=0.15]{images/board_middle_of_splitting_by_cut_nodes}
-
-Then, the board would contain 2 components.\\
-
-\includegraphics[scale=0.15]{images/board_after_splitting_by_cut_nodes}
-
-Now, what if we ran the backtracking \emph{independently} on both the blue and yellow components, and then somehow combined the results? In this way, we can take a single component, and split it further into \(\geq 2\) smaller components.\\
-
-But why limit ourselves to splitting a single component once? Notice, we have to solve the exact same problem for both the blue and yellow components. Thus, why solve it with backtracking, when we can again use the same trick of ``removing" squares? This leads to the following recursive algorithm.
-
-
-\begin{algorithm}[H]
-\caption{Solve Component Recursively}
- \begin{algorithmic}
-
- \Procedure{solveComponent}{$component[]$}
-    \If{$\left|component\right| \leq \; \sim 5$}
-        \State\Call{backtracking}{component}
-        \State\Return
-    \EndIf
-    \State $S \leftarrow findSplitSquares(component[])$
-    \State $newComponents[][] \leftarrow findComponents(\text{component[] without S})$
-    \For{$i \gets 1$ to $\left|newComponents\right|$}
-        \State\Call{solveComponent}{$newComponents[i]$}
-    \EndFor
-    \State \text{combine results}
- \EndProcedure
- \\
- \dots
- \State\Call{solveComponent}{$component$} \Comment{initial call to recursive function}
-\end{algorithmic}
-\end{algorithm}
-
-Here, the ``split" squares are the squares which we remove to split up the original component. Before diving into the reasons why this algorithm is still exponential, I'll explain the following parts:
-\begin{itemize}
-    \item the \(findSplitSquares\) function
-    \item combining results
-\end{itemize}
-\subsubsection{Finding Split Squares}
-First, we don't have to limit ourselves to removing just 1 square to split components. Although, assuming we remove \(k\) squares, it turns out the combine step will take \(\mathcal{O}(2^k)\) time. So in \href{https://github.com/lrvideckis/Minesweeper_Android}{my implementation}, I arbitrarily chose 6 as an upper bound on the number of split squares.
-
-Finding split squares requires representing the minesweeper board as a graph:
-\begin{itemize}
-    \item squares are nodes
-    \item 2 squares share an edge if there exists a number next to both squares.
-\end{itemize}
-
-For example this board, \includegraphics[scale=0.08]{images/board_as_graph_2}, produces the following graph: \\
-\includegraphics[scale=0.21]{images/Drawing} \\
-
-
-Notice that if node 4 is removed, then the graph would split into 2 connected components. Thus node 4 is an \href{https://cp-algorithms.com/graph/cutpoints.html}{articulation node}.  The first attempt would be to choose \(\leq\) 6 \href{https://cp-algorithms.com/graph/cutpoints.html}{articulation nodes} from the graph to remove. Although this approach would fail on grids such as: \includegraphics[scale=0.1]{images/board_with_no_cut_nodes} whose graphs have no articulation nodes. So let's find a more generalized solution.
-
-Ideally, we would want to remove \(\leq\) 6 nodes such that the size of the largest component is minimized. Unfortunately, the generalized problem of finding k nodes to remove to minimize the size of the largest remaining component \href{https://cs.stackexchange.com/questions/12789/find-which-vertices-to-delete-from-graph-to-get-smallest-largest-component}{is NP-complete}. But this isn't as relevant as you'd think. There are at least 2 options:
-\begin{itemize}
-    \item employ an approximation algorithm such as \href{https://supernet.isenberg.umass.edu/hlogistics/slides/Pardalos-Bellago-Nagurney.pdf#page=38}{the 2-exchange method}
-    \item employ a brute force approach similar to \href{https://cs.stackexchange.com/questions/12789/find-which-vertices-to-delete-from-graph-to-get-smallest-largest-component#comment27752_12809}{this comment}. Brute force here is okay since we're only removing \(\leq\) 6 nodes (thus is exponential in 6).
-\end{itemize}
-
-\subsubsection{Combining Results}
-
-Recall the problem: you are given a \emph{single} component of \(n\) squares (labeled 1, 2, ..., n). Find:
-\begin{itemize}
-    \item  \(\#configs[]\) defined as:  \(\#configs[i]\) = the number of mine configurations with \(i\) mines, (\(0 \leq i \leq M\))
-    \item \(\#configsWithJMine[][]\) defined as: \(\#configsWithJMine[i][j]\) = the number of mine configurations which have \(i\) mines, and square \(j\) is a mine, (\(0 \leq i \leq M, 1 \leq j \leq n\))
-\end{itemize}
-
-I'll only explain how to calculate \(\#configs[]\) as \(\#configsWithJMine[][]\) is calculated very similarly.
-\\
-\noindent\rule{\textwidth}{1pt}
-\\
-To understand this section, it'll help to know about \href{https://codeforces.com/blog/entry/337}{dynamic programming with bitmasks}.
-
-Consider this example board again:\\
-
-\includegraphics[scale=0.15]{images/board_after_splitting_by_cut_nodes}\\
-
-Our goal is to calculate some sub-result (not necessarily \(\#configs[]\)) for both the blue and yellow components, and then calculate the same sub-result for the original component. Also, we have to be able to calculate \(\#configs[]\) from this sub-result.\\
-
-The sub-result is an array \(dp[][]\) defined as: \(dp[mask][i]\) = the number of mine configurations with \(i\) mines under the restriction that if and only if the \(j\)-th bit in \(mask\) is 1, then there is a mine in the \(j\)-th removed square.\\
-
-
-Since the above example has only 1 removed square we consider 2 cases:
-
-\begin{itemize}
-    \item the removed square is a mine \(\left(mask = 1\right)\)
-    \item the removed square is not a mine \(\left(mask = 0\right)\)
-\end{itemize}
-
-If the removed square is a mine, we have
-
-\[dpOriginal[1][i] = \sum \limits_{j=0}^{i+1} dpBlue[1][j] \cdot dpYellow[1][i+1-j]\]\\
-
-where:
-\begin{itemize}
-    \item \(dpOriginal[][]\) is the \(dp[][]\) array corresponding to the original component
-    \item \(dpBlue[][]\) is the \(dp[][]\) array corresponding to the blue component
-    \item \(dpYellow[][]\) is the \(dp[][]\) array corresponding to the yellow component
-\end{itemize}
-
-Notice the upper bound on the sum is curiously \(\left(i+1\right)\). Both the blue and yellow components have a mine in the removed square. Thus we end up double counting this mine. The \(\left(i+1\right)\) upper limit cancels out with the double counting to get the correct result.\\
-
-If the removed square is not a mine, we have
-
-\[dpOriginal[0][i] = \sum \limits_{j=0}^i dpBlue[0][j] \cdot dpYellow[0][i-j].\]
-
-Assuming there are \(k\) removed squares \(\left(k \leq 6\right)\), we have
-
-\[\#configs[i] = \sum \limits_{mask=0}^{2^k-1} dp[mask][i].\]
-
-Here, there are \(2^k\) masks as there are \(2^k\) possible ways to place mines among the \(k\) removed squares.\\
-
-Finally, the original recursive call has 0 removed squares, so \(2^0 = 1\), there's 1 possible mask \(\left(mask = 0\right)\), and the \(\#configs\) array is stored in \(dp[0].\) \\
-\noindent\rule{\textwidth}{1pt}
-\\
-In this example, the original component was split into 2 sub-components, but in general, the original component can be split into \(k\) sub-components. It is possible to generalize this knapsack-like dynamic programming to work for \(k\) sub-components.
-
-There is a tricky case where a clue is surrounded by only ``removed" squares. Make sure to skip the masks which have the incorrect number of mines for these clues.
-
-\subsubsection{Discussion on this Recursive Algorithm}
-
-Why is this algorithm still exponential? Consider the case where all of the \(\binom{n}{\leq 6}\) subsets of nodes to remove don't decrease the size of the component (there's still 1 component after removing nodes). In this case, we're forced to solve the problem with normal recursive backtracking in \(\mathcal{O}(n\cdot2^n)\). Although in practice, this case is super rare.\\
-
-Where does the speedup come from with this recursive approach? For recursive backtracking, even with the best possible pruning, you'll still hit the base case once for every mine configuration. Thus, recursive backtracking has a lower bound of \(\Omega\left(\text{number of mine configurations}\right)\). This new recursive approach doesn't have the same lower bound, and thus potentially can be faster (and is faster in practice). \\
-
-Finally, here's a picture of the recursion tree for the board: \includegraphics[scale=.13]{images/recursion_tree_removed_nodes}. Here, the squares marked with an ``R" are articulation nodes in the corresponding graph. If you remove any of the ``R" squares, the board will split into 2 components (not considering the flagged squares).\\
-
-\begin{figure}[H]
-\centering
-\makebox[0pt]{\includegraphics[scale=.5]{images/recursion_tree_final}}
-\end{figure}
-
-Each node in this tree represents a single recursive call. Squares surrounded in black are in the sub-component in the current recursive call. Squares surrounded in both black and red are the ``removed" squares which are used to further split the current component. Leaf node components are solved with recursive backtracking.
