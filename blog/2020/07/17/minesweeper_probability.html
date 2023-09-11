@@ -27,8 +27,7 @@
                 <h3>How Mine Probability is Defined</h3>
                 <p>Mine probability for a square X is defined as:</p>
                 \[\frac{\text{number of mine configurations where X is a mine}}{\text{total number of mine configurations}}\]
-                <p>as each mine configuration has an equal chance of occurring.</p>
-                <p>Let's look at an example board with 20 mines:</p>
+                <p>as each mine configuration has an equal chance of occurring. Let's look at an example board with 20 mines:</p>
                 <img src="zoomed_out_board_cropped.png" alt="zoomed out board cropped" style="width:300px;height:auto;">
                 <p>The above board has 10 equally likely configurations of mines:</p>
                 <img src="config_1_cropped.png" alt="config 1 cropped" style="width:130px;height:auto;padding:2px;">
@@ -198,11 +197,20 @@ Define \(f \colon C \to \{true,false\}\) as follows:
                 </p>
                 <p>
                 Find \(\#totalConfigs[]\) defined as:
-                \[\#totalConfigs[i]\) = number of configurations of mines which have \(i\) mines when including all components, \((0 \leq i \leq M)\].
+                </p>
+                <p>
+                \(\#totalConfigs[i]\) = number of configurations of mines which
+                have \(i\) mines when including all components, \((0 \leq i \leq M)\).
+                </p>
+                <p>
                 This problem is similar to
                 <a href="https://en.wikipedia.org/wiki/Knapsack_problem#0-1_knapsack_problem">0-1 knapsack</a>.
                 It's solved by dynamic programming. Let
-                \[dp[i][j]\) = number of configurations including only components \(1, 2, ..., i\) which have \(j\) mines, \((1 \leq i \leq n,\;0 \leq j \leq M)\].
+                </p>
+                <p>
+                \(dp[i][j]\) = number of configurations including only components \(1, 2, ..., i\) which have \(j\) mines, \((1 \leq i \leq n,\;0 \leq j \leq M)\).
+                </p>
+                <p>
                 Then the array dp is calculated as:
                 \[dp[i][j] = \sum\limits_{k=0}^j dp[i-1][k] \cdot \#configs[i][j-k].\]
                 The answer, \(\#totalConfigs\), is stored in \(dp[n]\).
@@ -212,18 +220,22 @@ Define \(f \colon C \to \{true,false\}\) as follows:
                 This works great for calculating mine probability for squares not next to any number,
                 \[\frac{\sum\limits_{c \in C} \frac{M-\#m(c)}{Y}\binom{Y}{M-\#m(c)}}{\sum\limits_{d \in C} \binom{Y}{M-\#m(d)}},\]
                 because we just need to know the number of components, and the number of mines for each component. We have
-                \[\sum\limits_{c \in C} \frac{M-\#m(c)}{Y}\binom{Y}{M-\#m(c)} =
-                \sum\limits_{i=0}^M \frac{M-i}{Y} \cdot \#totalConfigs[i] \cdot \binom{Y}{M-i},\]
+                \[\sum\limits_{c \in C} \frac{M-\#m(c)}{Y}\binom{Y}{M-\#m(c)} =\]
+                \[\sum\limits_{i=0}^M \frac{M-i}{Y} \cdot \#totalConfigs[i] \cdot \binom{Y}{M-i},\]
                 and a similar formula for the denominator. Here, \(i\) represents the number of mines.
                 </p>
                 <p>
                 But calculating \(\#totalConfigs[]\) isn't enough to determine mine probability for a square X next to a number,
                 \[\frac{\sum\limits_{c \in C \mid f(c)} \binom{Y}{M-\#m(c)}}{\sum\limits_{d \in C} \binom{Y}{M-\#m(d)}},\]
-                because the numerator requires us to calculate the number of configurations \emph{where square X is a mine}. To do this, we define a new problem.
+                because the numerator requires us to calculate the number of configurations <i>where square X is a mine</i>. To do this, we define a new problem.
                 </p>
                 <p>
                 Again you are given \(n\), the number of components (labeled 1, 2, ..., n), and an array \(\#configs[][]\), where
-                \[\#configs[i][j]\) = number of configurations of mines for the \(i\)-th component which have \(j\) mines, \((1 \leq i \leq n,\;0 \leq j \leq M)\].
+                </p>
+                <p>
+                \(\#configs[i][j]\) = number of configurations of mines for the \(i\)-th component which have \(j\) mines, \((1 \leq i \leq n,\;0 \leq j \leq M)\).
+                </p>
+                <p>
                 This time, find an array \(dp[][][]\) defined as:
                 </p>
                 <p>
@@ -258,7 +270,8 @@ Define \(f \colon C \to \{true,false\}\) as follows:
                 </p>
                 <p>
                 We have
-                \[\sum\limits_{c \in C \mid f(c)} \binom{Y}{M-\#m(c)}= \sum\limits_{k=0}^M \sum\limits_{j=0}^k dp[i][j][k] \cdot countXIsMine[j] \cdot \binom{Y}{M-k}.\]
+                \[\sum\limits_{c \in C \mid f(c)} \binom{Y}{M-\#m(c)}=\]
+                \[\sum\limits_{k=0}^M \sum\limits_{j=0}^k dp[i][j][k] \cdot countXIsMine[j] \cdot \binom{Y}{M-k}.\]
                 Here, \(\sum\limits_{j=0}^k dp[i][j][k] \cdot countXIsMine[j]\) is the number of mine configurations (considering all components) which have \(k\) mines and X is a mine. Recall that when calculating \(dp[i][j][k]\), we assumed component \(i\) has exactly 1 mine configuration which has \(j\) mines. After multiplying with \(countXIsMine[j]\), component \(i\) now has \(countXIsMine[j]\) configurations with \(j\) mines (and X is a mine).
                 </p>
 
@@ -419,9 +432,7 @@ Define \(f \colon C \to \{true,false\}\) as follows:
                 <p>
                 To understand this section, it'll help to know about
                 <a href="https://codeforces.com/blog/entry/337">dynamic programming with bitmasks</a>.
-                </p>
-                <hr>
-                <p>Consider this example board again:</p>
+                Consider this example board again:</p>
                 <img src="board_after_splitting_by_cut_nodes.png" alt="board after splitting by cut nodes" style="width:170px;height:auto;">
                 <p>
                 Our goal is to calculate some sub-result (not necessarily
