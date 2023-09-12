@@ -94,11 +94,11 @@ void update(int pos, int val, int tl=0, int tr=n, int v=1) {
                 Notes:
                 </p>
                 <ul>
-                    <li>Update: do \(a[pos] += val\)</li>
+                    <li>Update: do \(a[pos]\) += \(val\)</li>
                     <li>Query: calculate \(\sum\limits_{i=l}^{r-1} a[i]\)</li>
                     <li>The node with index \(v\) has inclusive-exclusive range \([tl, tr)\)</li>
                     <li>Range \([tl, tr)\) splits into ranges \([tl, tm)\) and \([tm, tr)\)</li>
-                    <li>Node \(v\) has children \(2 \cdot v\), \(2 \cdot v + 1\), and parent \(v/2\). This is known as the <a href="https://en.algorithmica.org/hpc/data-structures/binary-search/#eytzinger-layout">Eytzinger Layout</a>.</li>
+                    <li>Node \(v\) has children \(2 \cdot v\), \(2 \cdot v + 1\), and parent \(\lfloor\frac{v}{2}\rfloor\). This is known as the <a href="https://en.algorithmica.org/hpc/data-structures/binary-search/#eytzinger-layout">Eytzinger Layout</a>.</li>
                 </ul>
                 <hr>
                 <p>
@@ -196,7 +196,7 @@ void update(int pos, int val, int tl=0, int tr=n, int v=0) {
                                     like: \((2 \cdot (v+1)+1)-1\)
                                 </details>
                             </li>
-                            <li>the \(k\) nodes have distinct indexes in range \([0, k-1]\) (this is only true because it's complete)</li>
+                            <li>the \(k\) nodes have distinct indexes in range \([0, k-1]\) (this is only true because it's complete). For segment trees, \(k=2 \cdot n-1\)</li>
                         </ul>
                     </li>
                 </ul>
@@ -205,12 +205,12 @@ void update(int pos, int val, int tl=0, int tr=n, int v=0) {
                 <ol>
                     <li>range \([tl, tr)\)</li>
                     <li>subtree size \(2 \cdot (tr-tl)-1\)</li>
-                    <li>midpoint \((tl+tr)/2\)</li>
+                    <li>midpoint \(\lfloor\frac{tl+tr}{2}\rfloor\)</li>
                 </ol>
                 <details>
                     <summary>Do you see the problem?</summary>
                     <ol>
-                        <li>In a segtree, the range is split in half (\(tm=(tl+tr)/2\)), so \(v\)'s left, right subtree sizes are off-by-2</li>
+                        <li>In a segtree, the range is split in half (\(tm=\lfloor\frac{tl+tr}{2}\rfloor\)), so \(v\)'s left, right subtree sizes are off-by-2</li>
                         <li>But for a complete binary tree, the left/right subtree sizes aren't necessarily off-by-2</li>
                     </ol>
                 </details>
@@ -297,17 +297,16 @@ void update(int pos, int val, int tl=0, int tr=n, int v=0) {
                             <br>
                             <img src="bst_base_case_2.png" alt="base case 2" style="width:200px;height:auto;">
                             <br>
-                            Now assume T1, T2 are full binary trees. Imagine
-                            creating a new full binary tree T by creating a new
-                            root, and setting T1 as the root's left subtree, T2
+                            Now assume \(T1\), \(T2\) are full binary trees. Imagine
+                            creating a new full binary tree \(T\) by creating a new
+                            root, and setting \(T1\) as the root's left subtree, \(T2\)
                             as the root's right subtree.
                             </p>
                             <p>Denode \(|T|\) as the total number of
-                            nodes in T. \(|T| = 1+|T1|+|T2| = 1+odd+odd =
-                                odd\)</p>
+                            nodes in T. \(|T| = 1+|T1|+|T2| = 1+odd+odd = odd\)</p>
                             <p>The root's index = \(|T1|\) = odd</p>
-                            <p>The indexes of nodes in T1 doesn't change.</p>
-                            <p>The indexes of nodes in T2 each increase by \(1+|T1|\) = 1+odd = even, so their parody doesn't change.</p>
+                            <p>The indexes of nodes in \(T1\) doesn't change.</p>
+                            <p>The indexes of nodes in \(T2\) each increase by \(1+|T1| = 1+odd = even\), so their parody doesn't change.</p>
                         </details>
                     </li>
                 </ul>
@@ -330,7 +329,7 @@ void update(int pos, int val, int tl=0, int tr=n, int v=0) {
                         </ul>
                     </li>
                 </ul>
-                <p>So we have to map the midpoints in \([1, n-1]\) to odd indexes in \([0,2 \cdot n-2]\) with the function \(f(midpoint) = 2*midpoint-1\) = in-order index</p>
+                <p>So we have to map the midpoints in \([1, n-1]\) to odd indexes in \([0,2 \cdot n-2]\) with the function \(f(midpoint) = 2 \cdot midpoint-1\) = in-order index</p>
                 <p>Leaves each have range \([tl, tl+1)\) which we can map to an even index \(2 \cdot tl\). So we can write a function like:</p>
                 <pre><code class="language-cpp">
 int in_order(int tl, int tr) {
@@ -393,7 +392,7 @@ int in_order(int tl, int tr) {
 }
                     </code></pre>
                     <ul>
-                        <li>Observe \(x/2 \cdot 2+1\) is like setting the
+                        <li>Observe \(\lfloor\frac{x}{2}\rfloor \cdot 2+1\) is like setting the
                             least significant bit of \(x\) to 1, so we
                             can replace it with \(x|1\)</li>
                         <li>For leaves, \(tl == tr\) so \(2 \cdot tl\) equals \(tl+tr\) which further equals \((tl+tr)|0\)</li>
