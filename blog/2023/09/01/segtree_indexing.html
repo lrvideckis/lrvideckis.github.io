@@ -320,12 +320,6 @@ void update(int pos, int val, int tl=0, int tr=n, int v=0) {
                 Observations:
                 </p>
                 <ul>
-                    <li>the set of \(n-1\) midpoints (\(tm\)) are distinct, and lie in \([1, n-1]\)
-                        <details>
-                            <summary>How to derive this</summary>
-                            todo
-                        </details>
-                    </li>
                     <li>
                         BST-property for midpoints: for an internal node \(v\) with midpoint \(tm\):
                         <ul>
@@ -334,7 +328,21 @@ void update(int pos, int val, int tl=0, int tr=n, int v=0) {
                         </ul>
                         <details>
                             <summary>How to derive this</summary>
-                            todo
+                            <p>Each internal node \(v\) has:</p>
+                            <ul>
+                                <li>range \([tl, tr)\) with \(tr - tl &ge; 2\)</li>
+                                <li>\(tl &lt; tm = \lfloor\frac{tl+tr}{2}\rfloor &lt; tr\), e.g. the midpoint is strictly inside the range</li>
+                            </ul>
+                            <p>Each node in \(v\)'s left child's subtree has midpoint strictly inside \([tl, tm)\), so it's \(&lt; tm\). (and similarly for \(v\)'s right child)</p>
+                        </details>
+                    </li>
+                    <li>the set of \(n-1\) midpoints (\(tm\)) are distinct, and lie in \([1, n-1]\)
+                        <details>
+                            <summary>How to derive this</summary>
+                            <p>The distinct property follows directly from the above BST-property</p>
+                            <hr>
+                            <p>Each internal node \(v\) has range \([tl, tr) ⊆ [0, n)\), and its midpoint
+                            is strictly inside \([tl, tr)\). So \(0 &le; tl &lt; tm &lt; tr &le; n\), so \(0 &lt; tm &lt; n\).</p>
                         </details>
                     </li>
                 </ul>
