@@ -303,7 +303,7 @@ void update(int pos, int val, int tl=0, int tr=n, int v=0) {
                             as the root's right subtree.
                             </p>
                             <p>Denode \(|T|\) as the total number of
-                            nodes in T. \(|T| = 1+|T1|+|T2| = 1+odd+odd = odd\)</p>
+                            nodes in \(T\). \(|T| = 1+|T1|+|T2| = 1+odd+odd = odd\)</p>
                             <p>The root's index = \(|T1|\) = odd</p>
                             <p>The indexes of nodes in \(T1\) doesn't change.</p>
                             <p>The indexes of nodes in \(T2\) each increase by \(1+|T1| = 1+odd = even\), so their parody doesn't change.</p>
@@ -320,13 +320,30 @@ void update(int pos, int val, int tl=0, int tr=n, int v=0) {
                 Observations:
                 </p>
                 <ul>
-                    <li>the set of \(n-1\) midpoints (\(tm\)) are distinct, and lie in \([1, n-1]\)</li>
                     <li>
                         BST-property for midpoints: for an internal node \(v\) with midpoint \(tm\):
                         <ul>
                             <li>All internal nodes in \(v\)'s left subtree have midpoint \(&lt;tm\)</li>
                             <li>All internal nodes in \(v\)'s right subtree have midpoint \(&gt;tm\)</li>
                         </ul>
+                        <details>
+                            <summary>How to derive this</summary>
+                            <p>Each internal node \(v\) has:</p>
+                            <ul>
+                                <li>range \([tl, tr)\) with \(tr - tl &ge; 2\)</li>
+                                <li>\(tl &lt; tm = \lfloor\frac{tl+tr}{2}\rfloor &lt; tr\), e.g. the midpoint is strictly inside the range</li>
+                            </ul>
+                            <p>Each node in \(v\)'s left child's subtree has midpoint strictly inside \([tl, tm)\), so it's \(&lt; tm\). (and similarly for \(v\)'s right child)</p>
+                        </details>
+                    </li>
+                    <li>the set of \(n-1\) midpoints (\(tm\)) are distinct, and lie in \([1, n-1]\)
+                        <details>
+                            <summary>How to derive this</summary>
+                            <p>The distinct property follows directly from the above BST-property</p>
+                            <hr>
+                            <p>Each internal node \(v\) has range \([tl, tr) ⊆ [0, n)\), and its midpoint
+                            is strictly inside \([tl, tr)\). So \(0 &le; tl &lt; tm &lt; tr &le; n\), so \(0 &lt; tm &lt; n\).</p>
+                        </details>
                     </li>
                 </ul>
                 <p>So we have to map the midpoints in \([1, n-1]\) to odd indexes in \([0,2 \cdot n-2]\) with the function \(f(midpoint) = 2 \cdot midpoint-1\) = in-order index</p>
@@ -385,7 +402,7 @@ void update(int pos, int val, int tl=0, int tr=n) {
                 <details>
                     <summary>How to further code golf this</summary>
                     <p>If we switch to inclusive-inclusive ranges (so node \(v\) has range \([tl, tr]\), which splits into ranges \([tl, tm]\) and \([tm+1, tr]\)) then, midpoints are distinct and lie in \([0, n-2]\).</p>
-                    <p>We still map the midpoints in \([0, n-2]\) to odd indexes in \([0,2 \cdot n-2]\) with the new function \(f(midpoint) = 2 \cdot midpoint+1\). And for leaves, we map range \([tl, tl]\) to \(2 \cdot tl\). Our new function is:</p>
+                    <p>We still map the midpoints in \([0, n-2]\) to odd indexes in \([0,2 \cdot n-2]\) with the <i>new</i> function \(f(midpoint) = 2 \cdot midpoint+1\). And for leaves, we map range \([tl, tl]\) to \(2 \cdot tl\). Our new function is:</p>
                     <pre><code class="language-cpp">
 int in_order(int tl, int tr) {
     return tl != tr ? (tl+tr)/2*2+1 : 2*tl;
