@@ -210,14 +210,12 @@ void update(int pos, int val, int tl=0, int tr=n, int v=0) {
                     <p>A complete binary tree's left subtree could be much
                     larger that the right; (and for segment trees, the subtree
                     size is proportional to the node's segment length) so the
-                    midpoint isn't necessarily always exactly in the
-                    middle.</p>
-                    <p>So we have to calculate the midpoint differently.</p>
+                    midpoint isn't always exactly in the middle.</p>
                 </details>
                 <p>Let's split it into 2 cases:</p>
                 <div class="slide-container">
-                <img src="complete_bst_case_1.png" alt="complete BST case 1" style="width:400px;height:auto;">
-                <img src="complete_bst_case_2.png" alt="complete BST case 2" style="width:400px;height:auto;">
+                <img src="complete_bst_case_1.png" alt="complete BST case 1" style="width:460px;height:auto;">
+                <img src="complete_bst_case_2.png" alt="complete BST case 2" style="width:460px;height:auto;">
                 </div>
                 <p>Observe:</p>
                 <ul>
@@ -231,12 +229,19 @@ void update(int pos, int val, int tl=0, int tr=n, int v=0) {
                         \(=2^k=tr-tl\) for some \(k\)
                     </li>
                 </ul>
-
-
-
-
-
-
+                <p>Let's revisit the cases in more detail.</p>
+                <img src="complete_bst_case_1_with_ranges.png" alt="complete BST case 1" style="width:540px;height:auto;">
+                <p>Here, the left child's subtree is clearly bigger than the right child's subtree, so
+                \[\lceil\frac{tr-tl}{2}\rceil &le; 2^k &le; tr-tl\]</p>
+                <img src="number_line_case_1.png" alt="number line case 1" style="width:400px;height:auto;">
+                <hr>
+                <img src="complete_bst_case_2_with_ranges.png" alt="complete BST case 2" style="width:540px;height:auto;">
+                <p>Again the left child's subtree is clearly bigger, so
+                \(2^k &le; \lfloor\frac{tr-tl}{2}\rfloor\).</p>
+                <img src="number_line_case_2.png" alt="number line case 2" style="width:400px;height:auto;">
+                <hr>
+                <p>But how to know which case we're in? And how to know which
+                power of 2? Well it turns out we can just take whichever case gives the smaller midpoint:</p>
                 <pre><code class="language-cpp">
 int split(int tl, int tr) {
     int pow_2 = 1 << __lg(tr-tl);
@@ -244,7 +249,7 @@ int split(int tl, int tr) {
 }
                 </code></pre>
                 <p>
-                Note it is no longer the middle of range (e.g. "mid" point), hence the name "split". For a proof, see my <a href="https://codeforces.com/blog/entry/112755">codeforces blog</a>.
+                Note it is no longer the middle of range (e.g. "mid" point), hence the name "split". For a full proof, see my <a href="https://codeforces.com/blog/entry/112755">codeforces blog</a>.
                 </p>
                 <p>We can code segment trees like:</p>
                 <details>
