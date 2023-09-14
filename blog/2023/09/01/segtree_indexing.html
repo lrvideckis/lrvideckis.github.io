@@ -179,7 +179,8 @@ void update(int pos, int val, int tl=0, int tr=n, int v=0) {
                     </code></pre>
                 </details>
                 <h3>Level Order</h3>
-                <p>Let's revisit the "standard" max-heap implementation:</p>
+                <p>Let's take inspiration from the "standard" max-heap implementation:</p>
+                <img src="bst_level_order.png" alt="bst level order" style="width:540px;height:auto;">
                 <ul>
                     <li>It's a <a href="https://en.wikipedia.org/wiki/Binary_tree#Types_of_binary_trees">complete binary tree</a></li>
                     <li>It uses the <a href="https://en.algorithmica.org/hpc/data-structures/binary-search/#eytzinger-layout">Eytzinger Layout</a> (in our case, shifted down by one), thus:
@@ -200,22 +201,47 @@ void update(int pos, int val, int tl=0, int tr=n, int v=0) {
                         </ul>
                     </li>
                 </ul>
-                <img src="bst_level_order.png" alt="bst level order" style="width:540px;height:auto;">
-                <p>Let's try to make this indexing layout work for segment trees. But there's a problem. Usually for segtrees, each node \(v\) has:</p>
-                <ol>
-                    <li>range \([tl, tr)\)</li>
-                    <li>subtree size \(2 \cdot (tr-tl)-1\)</li>
-                    <li>midpoint \(\lfloor\frac{tl+tr}{2}\rfloor\)</li>
-                </ol>
+                <hr>
+                <p>Let's try to make this indexing layout work for segment
+                trees. Usually for segtrees, each node \(v\) has midpoint
+                \(tm=\lfloor\frac{tl+tr}{2}\rfloor\).</p>
                 <details>
-                    <summary>Do you see the problem?</summary>
-                    <ol>
-                        <li>In a segtree, the range is split in half (\(tm=\lfloor\frac{tl+tr}{2}\rfloor\)), so \(v\)'s left, right subtree sizes are off-by-2</li>
-                        <li>But for a complete binary tree, the left/right subtree sizes aren't necessarily off-by-2</li>
-                    </ol>
+                    <summary>Do you see the problem with this midpoint?</summary>
+                    <p>A complete binary tree's left subtree could be much
+                    larger that the right; (and for segment trees, the subtree
+                    size is proportional to the node's segment length) so the
+                    midpoint isn't always exactly in the middle.</p>
                 </details>
-                <p>So we have to calculate the midpoint differently. It turns out the correct way to calculate it is:</p>
-
+                <p>Let's split it into 2 cases:</p>
+                <div class="slide-container">
+                <img src="complete_bst_case_1.png" alt="complete BST case 1" style="width:460px;height:auto;">
+                <img src="complete_bst_case_2.png" alt="complete BST case 2" style="width:460px;height:auto;">
+                </div>
+                <p>Observe:</p>
+                <ul>
+                    <li>
+                        for complete binary trees, either the left or right child's subtree is a
+                        <a href="https://en.wikipedia.org/wiki/Binary_tree#Types_of_binary_trees">perfect binary tree</a>
+                    </li>
+                    <li>
+                        for segment trees, if a node \(v\)'s subtree is
+                        perfect, then it's range \([tl, tr)\) has length
+                        \(=2^k=tr-tl\) for some \(k\)
+                    </li>
+                </ul>
+                <p>Let's revisit the cases in more detail.</p>
+                <img src="complete_bst_case_1_with_ranges.png" alt="complete BST case 1" style="width:540px;height:auto;">
+                <p>Here, the left child's subtree is clearly bigger than the right child's subtree, so
+                \[\lceil\frac{tr-tl}{2}\rceil &le; 2^k &le; tr-tl\]</p>
+                <img src="number_line_case_1.png" alt="number line case 1" style="width:400px;height:auto;">
+                <hr>
+                <img src="complete_bst_case_2_with_ranges.png" alt="complete BST case 2" style="width:540px;height:auto;">
+                <p>Again the left child's subtree is clearly bigger, so
+                \(2^k &le; \lfloor\frac{tr-tl}{2}\rfloor\).</p>
+                <img src="number_line_case_2.png" alt="number line case 2" style="width:400px;height:auto;">
+                <hr>
+                <p>But how to know which case we're in? And how to know which
+                power of 2? Well it turns out we can just take whichever case gives the smaller midpoint:</p>
                 <pre><code class="language-cpp">
 int split(int tl, int tr) {
     int pow_2 = 1 << __lg(tr-tl);
@@ -223,7 +249,7 @@ int split(int tl, int tr) {
 }
                 </code></pre>
                 <p>
-                Note it is no longer the middle of range (e.g. "mid" point), hence the name "split". For a proof, see my <a href="https://codeforces.com/blog/entry/112755">codeforces blog</a>.
+                Note it is no longer the middle of range (e.g. "mid" point), hence the name "split". For a full proof, see my <a href="https://codeforces.com/blog/entry/112755">codeforces blog</a>.
                 </p>
                 <p>We can code segment trees like:</p>
                 <details>
