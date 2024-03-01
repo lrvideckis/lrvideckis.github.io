@@ -15,7 +15,167 @@
 			</div>
 			<br>
 			<div class="main_content">
-				<p>hi there</p>
+				<p>
+				I recently read “Still Simpler Static Level Ancestors by Torben
+				Hagerup” describing how to process a rooted tree in O(n)
+				time/space to be able to answer online level ancestor queries
+				in O(1). I would like to explain it here. Thank you to Cameron
+				Custer for proof-reading and giving feedback.
+				</p>
+				<h3>Background/Warmup</h3>
+				<p>
+				Prerequisites: <a href="https://codeforces.com/blog/entry/71567?#comment-559299">ladder decomposition</a> and
+				<a href="https://codeforces.com/blog/entry/52062?#comment-360824">&lt;O(n),O(1)&gt; offline level ancestor</a>
+				</p>
+				<p>
+				First, to define a level ancestor query: For a node u, and integer k, let `LA(u, k)` = the node k edges “up” from u. Formally a node v such that:
+				</p>
+				<p>
+				<ul>
+					<li>v is an ancestor of u</li>
+					<li>`distance(u, v) = k` (distance here is number of edges)</li>
+				</ul>
+				</p>
+				<p>
+				For example `LA(u, 0) = u`; `LA(u, 1) = u’s parent`
+				</p>
+				<p>
+				Now the slowest part of ladder decomposition is the O(n log n) binary lifting. Everything else is O(n). So the approach will be to swap out the binary lifting part for something else which is O(n).
+				</p>
+				<p>
+				We can do the following, and it will still be O(n):
+				</p>
+				<p>
+				<ul>
+					<li>Store the answers to O(n) level ancestor queries of our choosing (answered offline during the initial build)</li>
+					<li>Normally in ladder decomposition, `length(ladder) = 2 * length(vertical path)`. But we can change this to `length(ladder) = c * length(vertical path)` for any constant `c` (of course the smaller the better).</li>
+				</ul>
+				</p>
+				<p>
+				The key observation about ladders: Given any node u and integer k (0 &le; k &le; depth[u] / 2):
+				The ladder which contains `LA(u, k)` also contains `LA(u, 2*k)`; or generally `LA(u, c*k)` when we extend the vertical paths by the multiple of c.
+				</p>
+				<img src="ladder_key_observation.png" alt="ladder key observation" style="width:auto;height:auto;">
+				<h3>The Magic Sequence</h3>
+				<p>
+				Let’s take a detour to the following sequence `a(i) = (i & -i) = 1 << __builtin_ctz(i)` for i >= 1 <a href="https://oeis.org/A006519">https://oeis.org/A006519</a>
+				</p>
+				<p>
+				1 2 1 4 1 2 1 8 1 2 1 4 1 2 1 16 1 2 1 4 1 2 1 8 1 2 1 4 1 2 1 32 1 2 1 4 1 …
+				</p>
+				<p>
+				Observe: for every value 2^k, it shows up first at index 2^k (1-based), then every 2^(k+1)-th index afterwards.
+				</p>
+				<p>
+				Q: Given index i >=1, and some value 2^k, I can move left or right. What’s the minimum steps I need to travel to get to the nearest value of 2^k?
+				</p>
+				<p>
+				A: at most 2^k steps. The worst case is I start at a(i) = 2^l > 2^k, e.g. exactly in the middle of the previous, and next occurrence of 2^k
+				</p>
+				<h3>The Algorithm</h3>
+				<p>
+				Let’s do a 2n-1 euler tour; let the i’th node be `euler_tour[i]`; i >= 1. Let’s calculate an array `jump[i] = LA(euler_tour[i], a(i))` offline, upfront.
+				</p>
+				<img src="euler_tour_jump.png" alt="euler tour jump" style="width:auto;height:auto;">
+				<p>
+				how to use the “jump” array to handle queries?
+				</p>
+				<p>
+				Let node u, and integer k be a query. We can know i = u’s index in the euler tour (it can show up multiple times; any index will work).
+				</p>
+				</hr>
+				<p>
+				**key idea**: We want to move either left, right in the euler tour to find some “close”-ish index j with a “big” jump upwards. But not too big: we want to stay in the subtree of `LA(u,k)`. Then we use the ladder containing `jump[j]` to get to `LA(u,k)`. The rest of the blog will be the all math behind this.
+				</p>
+				</hr>
+				<p>
+				It turns out we want to find closest index j such that `2*a(j) &le; k &lt; 4*a(j)`. Intuition: we move roughly k/2 steps away in the euler tour to get to a node with an upwards jump of size roughly k/2.
+				</p>
+				<img src="main_alg_visualized.png" alt="main algorithm visualilzed" style="width:auto;height:auto;">
+				<p>
+				Note if we move to j: `abs(depth[euler_tour[i]] - depth[euler_tour[j]]) &le; abs(i - j) &le; a(j)`
+				</p>
+				<spoiler summary="how to calculate j in O(1)">
+				<p>
+				First we calculate the power-of-2 “target_value” such that `2*target_value &le; k &lt; 4*target_value`:
+				</p>
+				<p>
+				`target_value = bit_floor(k / 2) = 1 &lt;&lt; __lg(k/2)`. Here, we want `k/2 &ge; 1` for it to work, so if `k &lt; 2` then calculate `LA(u,k)` naively.
+				</p>
+				<p>
+				Now we want the closest index j with `a(j) == target_value`. First zero-out all unwanted least significant bits with `i & -target_value`. Then ensure the correct value of __builtin_ctz by or-ing in the target_value: `j = i & -target_value | target_value`
+				</p>
+				</spoiler>
+				<p>
+				Note we’re not creating a ladder of length `c*a(i)` starting from every node because that sums to `c*(a(1)+a(2)+...+a(2n-1)) = O(nlogn)`. Rather it’s a vertical path decomposition (sum of lengths is exactly n), and each vertical path is extended upwards to `c*x` its original length into a ladder (sum of lengths &le; `c*n`)
+				</p>
+				<h3>Finding the Smallest `c` for Ladders to be Long Enough</h3>
+				<p>
+				Let’s prove some bounds on `d = depth[euler_tour[j]] - depth[LA(u,k)]`
+				</p>
+				<img src="lower_bound_main_alg.png" alt="lower bound main algorithm" style="width:auto;height:auto;">
+				<p>
+				Note `2*a(j) &le; k` from earlier. So `a(j) = 2*a(j) - a(j) &le; k - a(j) &le; d`. This implies `jump[j]` stays in the subtree of `LA(u,k)`.
+				</p>
+				<img src="upper_bound_main_alg.png" alt="upper bound main algorithm" style="width:auto;height:auto;">
+				<p>
+				Note `k &lt; 4*a(j)` from earlier. So `d &le; a(j) + k &lt; a(j) + 4*a(j) = 5*a(j)`
+				</p>
+				<p>
+				Remember, we can choose a constant `c` such that `length(ladder) = c * length(vertical path)`. Now let’s figure out the smallest c such that the ladder containing `jump[j]` will also contain `LA(u,k)`:
+				</p>
+				<img src="final_punchline.png" alt="final punchline" style="width:auto;height:auto;">
+				<p>
+				if we choose `c=5` then `length(ladder) = 5 * length(vertical path) >= 5 * a(j) > d`
+				</p>
+				<img src="meme.png" alt="meme" style="width:auto;height:auto;">
+				<p>
+				I mean that constant factor kinda sucks :( Well, at least we’ve shown a way to do the almighty, all-powerful theoretical &lt;O(n),O(1)&gt; level ancestor, all hail to the almighty. If thou is tempted by method of 4 russians, thou shall receive eternal punishment
+				</p>
+				<p>
+				here’s code with everything discussed so far: TODO https://judge.yosupo.jp/submission/194335
+				</p>
+				<h3>A Cool Thing</h3>
+				<p>
+				Here’s some intuition for why we chose the sequence a(i): It contains arbitrarily large jumps which appear regularly, sparsely. Sound familiar to any algorithm you know? It feels like linear jump pointers https://codeforces.com/blog/entry/74847. Let’s look at the jump sizes for each depth:
+				</p>
+				<p>
+				1,1,3,1,1,3,7,1,1,3,1,1,3,7,15,1,1,3,...
+				</p>
+				<p>
+				Map x -> (x+1)/2 and you get <a href="https://oeis.org/A182105">https://oeis.org/A182105</a>.
+				</p>
+				<p>
+				<a href="https://oeis.org/A006519">https://oeis.org/A006519</a> is kinda like the in-order
+				traversal of a complete binary tree, and
+				<a href="https://oeis.org/A182105">https://oeis.org/A182105</a>
+				is like the post-order traversal.
+				</p>
+				<h3>Improving the Constant Factor</h3>
+				<p>
+				Let’s introduce a constant `kappa` (kappa >= 2).
+				</p>
+				<p>
+				Instead of calculating `jump[i]` as `LA(euler_tour[i], a(i))`, calculate it as `LA(euler_tour[i], (kappa-1) * a(i))`
+				</p>
+				<p>
+				Let node u, and integer k be a query. We want to find nearest j such that `kappa*a(j) &le; k &lt; 2*kappa*a(j)`
+				</p>
+				<p>
+				Then you can bound d like: `(kappa-1) * a(j) &le; d &lt; (2 * kappa + 1) * a(j)`
+				</p>
+				<p>
+				And you can show `c &ge; (2 * kappa + 1) / (kappa - 1)`
+				</p>
+				<p>
+				The catch is when `k &lt; kappa`, you need to calculate `LA(u,k)` naively (or maybe store them).
+				</p>
+				<p>
+				The initial explanation is for `kappa = 2` btw
+				</p>
+				<p>
+				submission with kappa: TODO https://judge.yosupo.jp/submission/194336
+				</p>
 			</div>
 		</div>
 	</body>
