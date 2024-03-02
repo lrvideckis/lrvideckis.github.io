@@ -319,6 +319,13 @@ struct linear_level_ancestor {
 				\(LA(u,k)\) naively (or maybe store them).
 				</p>
 				<p>
+				Final complexity is one of
+				</p>
+				<ul>
+					<li>&lt;\(O(n \cdot \frac{2 \cdot κ + 1}{κ - 1})\),\(O(κ)\)&gt;</li>
+					<li>&lt;\(O(n \cdot \frac{2 \cdot κ + 1}{κ - 1} + n \cdot κ)\),\(O(1)\)&gt;</li>
+				</ul>
+				<p>
 				The initial explanation is for \(κ = 2\) btw
 				</p>
 				<details>
