@@ -150,11 +150,11 @@
 					then calculate \(LA(u, k)\) naively.
 					</p>
 					<p>
-					Now we want the closest index j with \(a(j) ==
+					Now we want the closest index \(j\) with \(a(j) ==
 					targetValue\). First zero-out all unwanted least
 					significant bits with <code>i &amp; -targetValue</code>.
-					Then ensure the correct value of __builtin_ctz by or-ing in
-					the targetValue:
+					Then ensure the correct value of <code>__builtin_ctz</code>
+					by or-ing in the targetValue:
 					</p>
 					<p>
 					<code>j = i &amp; -targetValue | targetValue</code>
@@ -182,13 +182,14 @@
 				</p>
 				<img src="upper_bound_main_alg.png" alt="upper bound main algorithm" style="width:auto;height:auto;">
 				<p>
-				Note \(k &lt; 4 \cdot a(j)\) from earlier. So \(d &le; a(j) + k
-				&lt; a(j) + 4 \cdot a(j) = 5 \cdot a(j)\)
+				Note \(k &lt; 4 \cdot a(j)\) from earlier. So \(d &le; k + a(j)
+				&lt; 4 \cdot a(j) + a(j) = 5 \cdot a(j)\)
 				</p>
 				<img src="final_punchline.png" alt="final punchline" style="width:auto;height:auto;">
 				<p>
-				if we choose \(c=5\) then \(length(ladder) = 5 \cdot
-				length(verticalPath) &ge; 5 \cdot  a(j) &gt; d\), so the ladder is long enough to always contain \(LA(u,k)\)
+				if we choose \(c=5\) then \(d &lt; 5 \cdot a(j) &le; 5 \cdot
+				length(verticalPath) = length(ladder)\), so the ladder is long
+				enough to always contain \(LA(u,k)\).
 				</p>
 				<img src="meme.png" alt="meme" style="width:auto;height:auto;">
 				<p>
@@ -296,7 +297,7 @@ struct linear_level_ancestor {
 				</p>
 				<h3>Improving the Constant Factor</h3>
 				<p>
-				Let’s introduce a constant \(κ\) \((κ >= 2)\).
+				Let’s introduce a constant \(κ\) \((κ &ge; 2)\).
 				</p>
 				<p>
 				Instead of calculating \(jump[i]\) as \(LA(eulerTour[i],
@@ -311,7 +312,7 @@ struct linear_level_ancestor {
 				</p>
 				<p>
 				And you can show \(c\) needs to be \(&ge; \frac{2 \cdot κ +
-				1}{κ - 1}\) for the ladders to be long enough.
+				1}{κ - 1}\)
 				</p>
 				<p>
 				The catch is when \(k &lt; κ\), you need to calculate
