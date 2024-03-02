@@ -5,6 +5,16 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>Linear Level Ancestors</title>
 		<link rel="stylesheet" href="/style.css">
+		<link rel="stylesheet" href="/highlight/styles/github.min.css">
+		<script src="/highlight/highlight.min.js"></script>
+		<script>
+			document.addEventListener('DOMContentLoaded', (event) => {
+				document.querySelectorAll('pre code').forEach((block) => {
+					hljs.highlightBlock(block);
+				});
+			});
+		</script>
+		<script src="/mathjax/es5/tex-chtml.js" id="MathJax-script" async></script>
 	</head>
 	<body>
 		<script type="text/javascript" language="javascript" src="/navagation_bar.js"></script>
@@ -17,38 +27,43 @@
 			<div class="main_content">
 				<p>
 				I recently read “Still Simpler Static Level Ancestors by Torben
-				Hagerup” describing how to process a rooted tree in O(n)
+				Hagerup” describing how to process a rooted tree in \(O(n)\)
 				time/space to be able to answer online level ancestor queries
-				in O(1). I would like to explain it here. Thank you to Cameron
-				Custer for proof-reading and giving feedback.
+				in \(O(1)\). I would like to explain it here. Thank you to
+				Cameron Custer for proof-reading and giving feedback.
 				</p>
 				<h3>Background/Warmup</h3>
 				<p>
 				Prerequisites: <a href="https://codeforces.com/blog/entry/71567?#comment-559299">ladder decomposition</a> and
-				<a href="https://codeforces.com/blog/entry/52062?#comment-360824">&lt;O(n),O(1)&gt; offline level ancestor</a>
+				<a href="https://codeforces.com/blog/entry/52062?#comment-360824">&lt;\(O(n)\),\(O(1)\)&gt; offline level ancestor</a>
 				</p>
 				<p>
-				First, to define a level ancestor query: For a node u, and integer k, let `LA(u, k)` = the node k edges “up” from u. Formally a node v such that:
+				First, to define a level ancestor query: For a node \(u\), and
+				integer \(k\), let \(LA(u, k)\) = the node \(k\) edges “up”
+				from \(u\). Formally a node \(v\) such that:
 				</p>
 				<p>
 				<ul>
-					<li>v is an ancestor of u</li>
-					<li>`distance(u, v) = k` (distance here is number of edges)</li>
+					<li>\(v\) is an ancestor of \(u\)</li>
+					<li>\(distance(u, v) = k\) (distance here is number of edges)</li>
 				</ul>
 				</p>
 				<p>
-				For example `LA(u, 0) = u`; `LA(u, 1) = u’s parent`
+				For example \(LA(u, 0) = u\)
 				</p>
 				<p>
-				Now the slowest part of ladder decomposition is the O(n log n) binary lifting. Everything else is O(n). So the approach will be to swap out the binary lifting part for something else which is O(n).
+				Now the slowest part of ladder decomposition is the \(O(n log n)\)
+				binary lifting. Everything else is \(O(n)\). So the approach will
+				be to swap out the binary lifting part for something else which
+				is \(O(n)\).
 				</p>
 				<p>
-				We can do the following, and it will still be O(n):
+				We can do the following, and it will still be \(O(n)\):
 				</p>
 				<p>
 				<ul>
-					<li>Store the answers to O(n) level ancestor queries of our choosing (answered offline during the initial build)</li>
-					<li>Normally in ladder decomposition, `length(ladder) = 2 * length(vertical path)`. But we can change this to `length(ladder) = c * length(vertical path)` for any constant `c` (of course the smaller the better).</li>
+					<li>Store the answers to \(O(n)\) level ancestor queries of our choosing (answered offline during the initial build)</li>
+					<li>Normally in ladder decomposition, <code>length(ladder) = 2 * length(vertical path)<code>. But we can change this to `length(ladder) = c * length(vertical path)` for any constant `c` (of course the smaller the better).</li>
 				</ul>
 				</p>
 				<p>
@@ -95,7 +110,7 @@
 				<p>
 				Note if we move to j: `abs(depth[euler_tour[i]] - depth[euler_tour[j]]) &le; abs(i - j) &le; a(j)`
 				</p>
-				<spoiler summary="how to calculate j in O(1)">
+				<spoiler summary="how to calculate j in \(O(1)\)">
 				<p>
 				First we calculate the power-of-2 “target_value” such that `2*target_value &le; k &lt; 4*target_value`:
 				</p>
@@ -133,7 +148,83 @@
 				I mean that constant factor kinda sucks :( Well, at least we’ve shown a way to do the almighty, all-powerful theoretical &lt;O(n),O(1)&gt; level ancestor, all hail to the almighty. If thou is tempted by method of 4 russians, thou shall receive eternal punishment
 				</p>
 				<p>
-				here’s code with everything discussed so far: TODO https://judge.yosupo.jp/submission/194335
+				<details>
+					<summary>code with everything discussed so far</summary>
+					TODO: template is cut off
+					<pre><code class="language-cpp">
+// https://oeis.org/A006519
+int a(int i) {
+	assert(i >= 1);
+	return i & -i;
+}
+
+struct linear_level_ancestor {
+
+	int n;
+	vector<vector<int>> adj;
+	vector<int> depth;
+	vector<int> parent;
+	vector<int> jump;
+	vector<int> deepest_leaf;
+	vector<int> euler_tour_index;
+	vector<int> dfs_stack;
+	vector<vector<int>> ladder;
+
+	linear_level_ancestor(const vector<vector<int>>& adj) : n(ssize(adj)), adj(adj), depth(n), parent(n), deepest_leaf(n), euler_tour_index(n), ladder(n) {
+		dfs(0);
+		assert(ssize(jump) == 2 * n - 1);
+		for (int i = 0; i < n; i++)
+			if (parent[i] == i || deepest_leaf[parent[i]] != deepest_leaf[i]) {
+				int leaf = deepest_leaf[i];
+				auto& lad = ladder[leaf];
+				lad.resize(min((depth[leaf] - depth[i]) * 5, depth[leaf] + 1), leaf);
+				for (int k = 1; k < ssize(lad); k++)
+					lad[k] = parent[lad[k - 1]];
+			}
+	}
+
+	void add_jump() {
+		jump.push_back(dfs_stack[0]);
+		int i = ssize(dfs_stack) - 1 - a(ssize(jump));
+		if (i > 0) jump.back() = dfs_stack[i];
+	}
+
+	void dfs(int u) {
+		dfs_stack.push_back(u);
+		add_jump();
+		euler_tour_index[u] = ssize(jump);
+		deepest_leaf[u] = u;
+		for (int v : adj[u]) {
+			if (v == parent[u]) continue;
+			parent[v] = u;
+			depth[v] = depth[u] + 1;
+			dfs(v);
+			add_jump();
+			if (depth[deepest_leaf[u]] < depth[deepest_leaf[v]])
+				deepest_leaf[u] = deepest_leaf[v];
+		}
+		dfs_stack.pop_back();
+	}
+
+	//kth parent of u
+	int LA(int u, int k) {
+		assert(0 <= k && k <= depth[u]);
+		if (k == 0) return u;
+		if (k == 1) return parent[u];
+		int target_value = bit_floor(unsigned(k / 2));
+		assert(2 * target_value <= k && k < 4 * target_value);
+		//now want to find closest index j with a(j) == target_value
+		int j = (euler_tour_index[u] & -target_value) | target_value;
+		assert(a(j) == target_value);
+		assert(abs(j - euler_tour_index[u]) <= target_value);
+		int leaf = deepest_leaf[jump[j - 1]];
+		k += depth[leaf] - depth[u];
+		assert(0 <= k && k < ssize(ladder[leaf]));
+		return ladder[leaf][k];
+	}
+};
+					</code></pre>
+				</details>
 				</p>
 				<h3>A Cool Thing</h3>
 				<p>
