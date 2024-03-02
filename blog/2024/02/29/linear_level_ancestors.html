@@ -204,8 +204,7 @@
 				</p>
 				<p>
 				<details>
-					<summary>code with everything discussed so far</summary>
-					TODO: template is cut off
+					<summary>c++ code with everything discussed so far</summary>
 					<pre><code class="language-cpp">
 // https://oeis.org/A006519
 int a(int i) {
@@ -216,16 +215,16 @@ int a(int i) {
 struct linear_level_ancestor {
 
 	int n;
-	vector<vector<int>> adj;
-	vector<int> depth;
-	vector<int> parent;
-	vector<int> jump;
-	vector<int> deepest_leaf;
-	vector<int> euler_tour_index;
-	vector<int> dfs_stack;
-	vector<vector<int>> ladder;
+	vector&lt;vector&lt;int&gt;&gt; adj;
+	vector&lt;int&gt; depth;
+	vector&lt;int&gt; parent;
+	vector&lt;int&gt; jump;
+	vector&lt;int&gt; deepest_leaf;
+	vector&lt;int&gt; euler_tour_index;
+	vector&lt;int&gt; dfs_stack;
+	vector&lt;vector&lt;int&gt;&gt; ladder;
 
-	linear_level_ancestor(const vector<vector<int>>& adj) : n(ssize(adj)), adj(adj), depth(n), parent(n), deepest_leaf(n), euler_tour_index(n), ladder(n) {
+	linear_level_ancestor(const vector&lt;vector&lt;int&gt;&gt;& adj) : n(ssize(adj)), adj(adj), depth(n), parent(n), deepest_leaf(n), euler_tour_index(n), ladder(n) {
 		dfs(0);
 		assert(ssize(jump) == 2 * n - 1);
 		for (int i = 0; i < n; i++)
@@ -327,9 +326,86 @@ struct linear_level_ancestor {
 				<p>
 				The initial explanation is for \(κ = 2\) btw
 				</p>
-				<p>
-				code with \(κ\): TODO https://judge.yosupo.jp/submission/194336
-				</p>
+				<details>
+					<summary>c++ code with \(κ\)</summary>
+					<pre><code class="language-cpp">
+
+// https://oeis.org/A006519
+int a(int i) {
+	assert(i >= 1);
+	return i & -i;
+}
+
+struct linear_level_ancestor {
+
+	int n;
+	const int kappa;
+	vector&lt;vector&lt;int&gt;&gt; adj;
+	vector&lt;int&gt; depth;
+	vector&lt;int&gt; parent;
+	vector&lt;int&gt; jump;
+	vector&lt;int&gt; deepest_leaf;
+	vector&lt;int&gt; euler_tour_index;
+	vector&lt;int&gt; dfs_stack;
+	vector&lt;vector&lt;int&gt;&gt; ladder;
+
+	linear_level_ancestor(const vector&lt;vector&lt;int&gt;&gt;& adj, int kappa) : n(ssize(adj)), kappa(kappa), adj(adj), depth(n), parent(n), deepest_leaf(n), euler_tour_index(n), ladder(n) {
+		assert(kappa >= 2);
+		dfs(0);
+		assert(ssize(jump) == 2 * n - 1);
+		for (int i = 0; i < n; i++)
+			if (parent[i] == i || deepest_leaf[parent[i]] != deepest_leaf[i]) {
+				int leaf = deepest_leaf[i];
+				auto& lad = ladder[leaf];
+				lad.resize(min((depth[leaf] - depth[i]) * (2 * kappa + 1) / (kappa - 1), depth[leaf] + 1), leaf);
+				for (int k = 1; k < ssize(lad); k++)
+					lad[k] = parent[lad[k - 1]];
+			}
+	}
+
+	void add_jump() {
+		jump.push_back(dfs_stack[0]);
+		int i = ssize(dfs_stack) - 1 - (kappa - 1) * a(ssize(jump));
+		if (i > 0) jump.back() = dfs_stack[i];
+	}
+
+	void dfs(int u) {
+		dfs_stack.push_back(u);
+		add_jump();
+		euler_tour_index[u] = ssize(jump);
+		deepest_leaf[u] = u;
+		for (int v : adj[u]) {
+			if (v == parent[u]) continue;
+			parent[v] = u;
+			depth[v] = depth[u] + 1;
+			dfs(v);
+			add_jump();
+			if (depth[deepest_leaf[u]] < depth[deepest_leaf[v]])
+				deepest_leaf[u] = deepest_leaf[v];
+		}
+		dfs_stack.pop_back();
+	}
+
+	//kth parent of u
+	int LA(int u, int k) {
+		assert(0 <= k && k <= depth[u]);
+		if(k < kappa) {
+			while(k--) u = parent[u];
+			return u;
+		}
+		int target_value = bit_floor(unsigned(k / kappa));
+		assert(kappa * target_value <= k && k < 2 * kappa * target_value);
+		int j = (euler_tour_index[u] & -target_value) | target_value;
+		assert(a(j) == target_value);
+		assert(abs(j - euler_tour_index[u]) <= target_value);
+		int leaf = deepest_leaf[jump[j - 1]];
+		k += depth[leaf] - depth[u];
+		assert(0 <= k && k < ssize(ladder[leaf]));
+		return ladder[leaf][k];
+	}
+};
+					</code></pre>
+				</details>
 			</div>
 		</div>
 	</body>
