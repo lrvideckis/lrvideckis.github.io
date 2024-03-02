@@ -58,7 +58,6 @@
 				<p>
 				Note we can do the following, and it will still be \(O(n)\):
 				</p>
-				<p>
 				<ul>
 					<li>Store the answers to \(O(n)\) level ancestor queries of
 						our choosing (answered offline during the initial
@@ -68,7 +67,6 @@
 						\(length(ladder) = c \cdot length(verticalPath)\) for
 					any constant \(c\) (of course the smaller the better).</li>
 				</ul>
-				</p>
 				<p>
 				The key observation about ladders: Given any node \(u\) and
 				integer \(k\) \((0 &le; k &le; \frac{depth[u]}{2})\):
@@ -200,7 +198,6 @@
 				thou is tempted by method of 4 russians, thou shall receive
 				eternal punishment.
 				</p>
-				<p>
 				<details>
 					<summary>c++ code with everything discussed so far</summary>
 					<pre><code class="language-cpp">
@@ -277,7 +274,6 @@ struct linear_level_ancestor {
 };
 					</code></pre>
 				</details>
-				</p>
 				<h3>A Cool Thing</h3>
 				<p>
 				Here’s some intuition for why we chose the sequence \(a(i)\): It
