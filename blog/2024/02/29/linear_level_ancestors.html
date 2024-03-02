@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Linear Level Ancestors</title>
+		<link rel="stylesheet" href="/style.css">
+		<link rel="stylesheet" href="/highlight/styles/github.min.css">
+		<script src="/highlight/highlight.min.js"></script>
+		<script>
+			document.addEventListener('DOMContentLoaded', (event) => {
+				document.querySelectorAll('pre code').forEach((block) => {
+					hljs.highlightBlock(block);
+				});
+			});
+		</script>
+		<script src="/mathjax/es5/tex-chtml.js" id="MathJax-script" async></script>
+	</head>
+	<body>
+		<script type="text/javascript" language="javascript" src="/navagation_bar.js"></script>
+		<div class="body">
+			<div class="heading">
+				<h1 class="main_title">&lt;\(O(n)\),\(O(1)\)&gt; Level Ancestors, not Method of 4 Russians</h1>
+				<h2 class="blog_date">2024 February 29</h2>
+			</div>
+			<br>
+			<div class="main_content">
+				<p>
+				I recently read “Still Simpler Static Level Ancestors by Torben
+				Hagerup” describing how to process a rooted tree in \(O(n)\)
+				time/space to be able to answer online level ancestor queries
+				in \(O(1)\). I would like to explain it here. Thank you to
+				Cameron Custer for proof-reading and giving feedback.
+				</p>
+				<h3>Background/Warmup</h3>
+				<p>
+				Prerequisites: <a href="https://codeforces.com/blog/entry/71567?#comment-559299">ladder decomposition</a> and
+				<a href="https://codeforces.com/blog/entry/52062?#comment-360824">&lt;O(n),O(1)&gt; offline level ancestor</a>
+				</p>
+				<p>
+				First, to define a level ancestor query: For a node \(u\), and
+				integer \(k\), let \(LA(u, k)\) = the node \(k\) edges “up”
+				from \(u\). Formally a node \(v\) such that:
+				</p>
+				<ul>
+					<li>\(v\) is an ancestor of \(u\)</li>
+					<li>\(distance(u, v) = k\) (distance here is number of edges)</li>
+				</ul>
+				<p>
+				For example \(LA(u, 0) = u\)
+				</p>
+				<p>
+				Now the slowest part of ladder decomposition is the \(O(n \cdot log(n))\)
+				binary lifting. Everything else is \(O(n)\). So the approach will
+				be to swap out the binary lifting part for something else which
+				is \(O(n)\).
+				</p>
+				<p>
+				Note we can do the following, and it will still be \(O(n)\):
+				</p>
+				<ul>
+					<li>Store the answers to \(O(n)\) level ancestor queries of
+						our choosing (answered offline during the initial
+						build)</li>
+					<li>Normally in ladder decomposition, \(length(ladder) = 2
+						\cdot length(verticalPath)\). But we can change this to
+						\(length(ladder) = c \cdot length(verticalPath)\) for
+					any constant \(c\) (of course the smaller the better).</li>
+				</ul>
+				<p>
+				The key observation about ladders: Given any node \(u\) and
+				integer \(k\) \((0 &le; k &le; \frac{depth[u]}{2})\):
+				</p>
+				<p>
+				The ladder which contains \(LA(u, k)\) also contains \(LA(u, 2
+				\cdot k)\); or generally \(LA(u, c \cdot k)\) when we extend
+				the vertical paths by the multiple of \(c\)
+				</p>
+				<img src="ladder_key_observation.png" alt="ladder key observation" style="width:auto;height:auto;">
+				<h3>The Magic Sequence</h3>
+				<p>
+				Let’s take a detour to the following sequence \(a(i)\) =
+				highest power of \(2\) which divides \(i\) for \(i &ge; 1\) <a
+				href="https://oeis.org/A006519">https://oeis.org/A006519</a>
+				</p>
+				<p>
+				1 2 1 4 1 2 1 8 1 2 1 4 1 2 1 16 1 2 1 4 1 2 1 8 1 2 1 4 1 2 1 32 1 2 1 4 1 …
+				</p>
+				<p>
+				Observe: for every value \(2^k\), it shows up first at index
+				\(2^k\) (1-based), then every \(2^{k+1}\)-th index afterwards.
+				</p>
+				<p>
+				Q: Given index \(i &ge; 1\), and some value \(2^k\), I can move left or
+				right. What’s the minimum steps I need to travel to get to the
+				nearest value of \(2^k\)?
+				</p>
+				<p>
+				A: at most \(2^k\) steps. The worst case is I start at \(a(i) =
+				2^l &gt; 2^k\), e.g. exactly in the middle of the previous, and
+				next occurrence of \(2^k\)
+				</p>
+				<h3>The Algorithm</h3>
+				<p>
+				Let’s do a \(2 \cdot n - 1\) euler tour; let the \(i\)’th node be
+				\(eulerTour[i]\); \(i &ge; 1\). Let’s calculate an array
+				\(jump[i] = LA(eulerTour[i], a(i))\) offline, upfront.
+				</p>
+				<img src="euler_tour_jump.png" alt="euler tour jump" style="width:auto;height:auto;">
+				<p>
+				how to use the \(jump\) array to handle queries?
+				</p>
+				<p>
+				Let node \(u\), and integer \(k\) be a query. We can know \(i\)
+				= \(u\)’s index in the euler tour (it can show up multiple times;
+				any index will work).
+				</p>
+				<hr>
+				<p>
+				<b>key idea</b>: We want to move either left, right in the
+				euler tour to find some “close”-ish index \(j\) with a “big”
+				jump upwards. But not too big: we want to stay in the subtree
+				of \(LA(u, k)\). Then we use the ladder containing \(jump[j]\)
+				to get to \(LA(u, k)\). The rest of the blog will be the all
+				math behind this.
+				</p>
+				<hr>
+				<p>
+				It turns out we want to find closest index \(j\) such that \(2
+				\cdot a(j) &le; k &lt; 4 \cdot a(j)\). Intuition: we move
+				roughly \(\frac{k}{2}\) steps away in the euler tour to get to
+				a node with an upwards jump of size roughly \(\frac{k}{2}\).
+				</p>
+				<img src="main_alg_visualized.png" alt="main algorithm visualilzed" style="width:auto;height:auto;">
+				<p>
+				Note if we move to \(j\): \(|depth[eulerTour[i]] - depth[eulerTour[j]]| &le; |i - j| &le; a(j)\)
+				</p>
+				<hr>
+				<details>
+					<summary>how to calculate \(j\) in \(O(1)\)</summary>
+					<p>
+					First we calculate the power-of-2 \(targetValue\) such that
+					\(2 \cdot targetValue &le; k &lt; 4 \cdot targetValue\):
+					</p>
+					<p>
+					<code>targetValue = bit_floor(k / 2) = 1 &lt;&lt; __lg(k/2)</code>
+					</p>
+					<p>
+					Here, we want \(\frac{k}{2} &ge; 1\) for it to work, so if \(k &lt; 2\)
+					then calculate \(LA(u, k)\) naively.
+					</p>
+					<p>
+					Now we want the closest index j with \(a(j) ==
+					targetValue\). First zero-out all unwanted least
+					significant bits with <code>i &amp; -targetValue</code>.
+					Then ensure the correct value of __builtin_ctz by or-ing in
+					the targetValue:
+					</p>
+					<p>
+					<code>j = i &amp; -targetValue | targetValue</code>
+					</p>
+				</details>
+				<hr>
+				<p>
+				Note we’re not creating a ladder of length \(c \cdot a(i)\)
+				starting from every node because that sums to \(c \cdot
+				(a(1)+a(2)+...+a(2n-1)) = O(n \cdot log(n))\). Rather it’s a
+				vertical path decomposition (sum of lengths is exactly \(n\)),
+				and each vertical path is extended upwards to \(c\) times its
+				original length into a ladder (sum of lengths &le; \(c \cdot
+				n\))
+				</p>
+				<h3>Finding the Smallest \(c\) for Ladders to be Long Enough</h3>
+				<p>
+				Let’s prove some bounds on \(d = depth[eulerTour[j]] - depth[LA(u, k)]\)
+				</p>
+				<img src="lower_bound_main_alg.png" alt="lower bound main algorithm" style="width:auto;height:auto;">
+				<p>
+				Note \(2 \cdot a(j) &le; k\) from earlier. So \(a(j) = 2 \cdot
+				a(j) - a(j) &le; k - a(j) &le; d\). This implies \(jump[j]\)
+				stays in the subtree of \(LA(u, k)\).
+				</p>
+				<img src="upper_bound_main_alg.png" alt="upper bound main algorithm" style="width:auto;height:auto;">
+				<p>
+				Note \(k &lt; 4 \cdot a(j)\) from earlier. So \(d &le; a(j) + k
+				&lt; a(j) + 4 \cdot a(j) = 5 \cdot a(j)\)
+				</p>
+				<img src="final_punchline.png" alt="final punchline" style="width:auto;height:auto;">
+				<p>
+				if we choose \(c=5\) then \(length(ladder) = 5 \cdot
+				length(verticalPath) &ge; 5 \cdot  a(j) &gt; d\), so the ladder is long enough to always contain \(LA(u,k)\)
+				</p>
+				<img src="meme.png" alt="meme" style="width:auto;height:auto;">
+				<p>
+				I mean that constant factor kinda sucks :( Well, at least we’ve
+				shown a way to do the almighty, all-powerful theoretical
+				&lt;\(O(n),O(1)\)&gt; level ancestor, all hail to the almighty. If
+				thou is tempted by method of 4 russians, thou shall receive
+				eternal punishment.
+				</p>
+				<details>
+					<summary>c++ code with everything discussed so far</summary>
+					<pre><code class="language-cpp">
+// https://oeis.org/A006519
+int a(int i) {
+	assert(i >= 1);
+	return i & -i;
+}
+
+struct linear_level_ancestor {
+
+	int n;
+	vector&lt;vector&lt;int&gt;&gt; adj;
+	vector&lt;int&gt; depth;
+	vector&lt;int&gt; parent;
+	vector&lt;int&gt; jump;
+	vector&lt;int&gt; deepest_leaf;
+	vector&lt;int&gt; euler_tour_index;
+	vector&lt;int&gt; dfs_stack;
+	vector&lt;vector&lt;int&gt;&gt; ladder;
+
+	linear_level_ancestor(const vector&lt;vector&lt;int&gt;&gt;& adj) : n(ssize(adj)), adj(adj), depth(n), parent(n), deepest_leaf(n), euler_tour_index(n), ladder(n) {
+		dfs(0);
+		assert(ssize(jump) == 2 * n - 1);
+		for (int i = 0; i < n; i++)
+			if (parent[i] == i || deepest_leaf[parent[i]] != deepest_leaf[i]) {
+				int leaf = deepest_leaf[i];
+				auto& lad = ladder[leaf];
+				lad.resize(min((depth[leaf] - depth[i]) * 5, depth[leaf] + 1), leaf);
+				for (int k = 1; k < ssize(lad); k++)
+					lad[k] = parent[lad[k - 1]];
+			}
+	}
+
+	void add_jump() {
+		jump.push_back(dfs_stack[0]);
+		int i = ssize(dfs_stack) - 1 - a(ssize(jump));
+		if (i > 0) jump.back() = dfs_stack[i];
+	}
+
+	void dfs(int u) {
+		dfs_stack.push_back(u);
+		add_jump();
+		euler_tour_index[u] = ssize(jump);
+		deepest_leaf[u] = u;
+		for (int v : adj[u]) {
+			if (v == parent[u]) continue;
+			parent[v] = u;
+			depth[v] = depth[u] + 1;
+			dfs(v);
+			add_jump();
+			if (depth[deepest_leaf[u]] < depth[deepest_leaf[v]])
+				deepest_leaf[u] = deepest_leaf[v];
+		}
+		dfs_stack.pop_back();
+	}
+
+	//kth parent of u
+	int LA(int u, int k) {
+		assert(0 <= k && k <= depth[u]);
+		if (k == 0) return u;
+		if (k == 1) return parent[u];
+		int target_value = bit_floor(unsigned(k / 2));
+		assert(2 * target_value <= k && k < 4 * target_value);
+		//now want to find closest index j with a(j) == target_value
+		int j = (euler_tour_index[u] & -target_value) | target_value;
+		assert(a(j) == target_value);
+		assert(abs(j - euler_tour_index[u]) <= target_value);
+		int leaf = deepest_leaf[jump[j - 1]];
+		k += depth[leaf] - depth[u];
+		assert(0 <= k && k < ssize(ladder[leaf]));
+		return ladder[leaf][k];
+	}
+};
+					</code></pre>
+				</details>
+				<h3>A Cool Thing</h3>
+				<p>
+				Here’s some intuition for why we chose the sequence \(a(i)\): It
+				contains arbitrarily large jumps which appear regularly,
+				sparsely. Sound familiar to any algorithm you know? It feels
+				like <a href="https://codeforces.com/blog/entry/74847">linear jump pointers</a>.
+				Let’s look at the jump sizes for each depth:
+				</p>
+				<p>
+				1,1,3,1,1,3,7,1,1,3,1,1,3,7,15,1,1,3,...
+				</p>
+				<p>
+				Map \(x ⇒ \frac{x+1}{2}\) and you get <a href="https://oeis.org/A182105">https://oeis.org/A182105</a>.
+				</p>
+				<p>
+				<a href="https://oeis.org/A006519">https://oeis.org/A006519</a> is kinda like the in-order
+				traversal of a complete binary tree, and
+				<a href="https://oeis.org/A182105">https://oeis.org/A182105</a>
+				is like the post-order traversal.
+				</p>
+				<h3>Improving the Constant Factor</h3>
+				<p>
+				Let’s introduce a constant \(κ\) \((κ >= 2)\).
+				</p>
+				<p>
+				Instead of calculating \(jump[i]\) as \(LA(eulerTour[i],
+				a(i))\), calculate it as \(LA(eulerTour[i], (κ-1) \cdot a(i))\)
+				</p>
+				<p>
+				Let node \(u\), and integer \(k\) be a query. We want to find nearest \(j\)
+				such that \(κ \cdot a(j) &le; k &lt; 2 \cdot κ \cdot a(j)\)
+				</p>
+				<p>
+				Then you can bound \(d\) like: \((κ-1) \cdot a(j) &le; d &lt; (2 \cdot κ + 1) \cdot a(j)\)
+				</p>
+				<p>
+				And you can show \(c\) needs to be \(&ge; \frac{2 \cdot κ +
+				1}{κ - 1}\) for the ladders to be long enough.
+				</p>
+				<p>
+				The catch is when \(k &lt; κ\), you need to calculate
+				\(LA(u,k)\) naively (or maybe store them).
+				</p>
+				<p>
+				The initial explanation is for \(κ = 2\) btw
+				</p>
+				<details>
+					<summary>c++ code with \(κ\)</summary>
+					<pre><code class="language-cpp">
+
+// https://oeis.org/A006519
+int a(int i) {
+	assert(i >= 1);
+	return i & -i;
+}
+
+struct linear_level_ancestor {
+
+	int n;
+	const int kappa;
+	vector&lt;vector&lt;int&gt;&gt; adj;
+	vector&lt;int&gt; depth;
+	vector&lt;int&gt; parent;
+	vector&lt;int&gt; jump;
+	vector&lt;int&gt; deepest_leaf;
+	vector&lt;int&gt; euler_tour_index;
+	vector&lt;int&gt; dfs_stack;
+	vector&lt;vector&lt;int&gt;&gt; ladder;
+
+	linear_level_ancestor(const vector&lt;vector&lt;int&gt;&gt;& adj, int kappa) : n(ssize(adj)), kappa(kappa), adj(adj), depth(n), parent(n), deepest_leaf(n), euler_tour_index(n), ladder(n) {
+		assert(kappa >= 2);
+		dfs(0);
+		assert(ssize(jump) == 2 * n - 1);
+		for (int i = 0; i < n; i++)
+			if (parent[i] == i || deepest_leaf[parent[i]] != deepest_leaf[i]) {
+				int leaf = deepest_leaf[i];
+				auto& lad = ladder[leaf];
+				lad.resize(min((depth[leaf] - depth[i]) * (2 * kappa + 1) / (kappa - 1), depth[leaf] + 1), leaf);
+				for (int k = 1; k < ssize(lad); k++)
+					lad[k] = parent[lad[k - 1]];
+			}
+	}
+
+	void add_jump() {
+		jump.push_back(dfs_stack[0]);
+		int i = ssize(dfs_stack) - 1 - (kappa - 1) * a(ssize(jump));
+		if (i > 0) jump.back() = dfs_stack[i];
+	}
+
+	void dfs(int u) {
+		dfs_stack.push_back(u);
+		add_jump();
+		euler_tour_index[u] = ssize(jump);
+		deepest_leaf[u] = u;
+		for (int v : adj[u]) {
+			if (v == parent[u]) continue;
+			parent[v] = u;
+			depth[v] = depth[u] + 1;
+			dfs(v);
+			add_jump();
+			if (depth[deepest_leaf[u]] < depth[deepest_leaf[v]])
+				deepest_leaf[u] = deepest_leaf[v];
+		}
+		dfs_stack.pop_back();
+	}
+
+	//kth parent of u
+	int LA(int u, int k) {
+		assert(0 <= k && k <= depth[u]);
+		if(k < kappa) {
+			while(k--) u = parent[u];
+			return u;
+		}
+		int target_value = bit_floor(unsigned(k / kappa));
+		assert(kappa * target_value <= k && k < 2 * kappa * target_value);
+		int j = (euler_tour_index[u] & -target_value) | target_value;
+		assert(a(j) == target_value);
+		assert(abs(j - euler_tour_index[u]) <= target_value);
+		int leaf = deepest_leaf[jump[j - 1]];
+		k += depth[leaf] - depth[u];
+		assert(0 <= k && k < ssize(ladder[leaf]));
+		return ladder[leaf][k];
+	}
+};
+					</code></pre>
+				</details>
+			</br>
+			</div>
+		</div>
+	</body>
+</html>
