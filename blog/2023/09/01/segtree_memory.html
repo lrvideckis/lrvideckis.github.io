@@ -69,25 +69,25 @@ void build(int a[], int tl=0, int tr=n, int v=1) {
 }
 
 long long query(int l, int r, int tl=0, int tr=n, int v=1) {
-	if (r <= tl || tr <= l) return 0LL;
-							   if (l <= tl && tr <= r) return t[v];
-							   int tm = (tl+tr)/2;
-							   return query(l, r, tl, tm, 2*v)
-							   + query(l, r, tm, tr, 2*v+1);
-							   }
+	if (r &lt;= tl || tr &lt;= l) return 0LL;
+	if (l &lt;= tl &amp;&amp; tr &lt;= r) return t[v];
+	int tm = (tl+tr)/2;
+	return query(l, r, tl, tm, 2*v)
+		 + query(l, r, tm, tr, 2*v+1);
+}
 
-							   void update(int pos, int val, int tl=0, int tr=n, int v=1) {
-							   if (tr - tl == 1) {
-							   t[v] += val;
-							   } else {
-							   int tm = (tl+tr)/2;
-							   if (pos < tm)
-							   update(pos, val, tl, tm, 2*v);
-							   else
-							   update(pos, val, tm, tr, 2*v+1);
-							   t[v] = t[2*v] + t[2*v+1];
-							   }
-							   }
+void update(int pos, int val, int tl=0, int tr=n, int v=1) {
+	if (tr - tl == 1) {
+		t[v] += val;
+	} else {
+		int tm = (tl+tr)/2;
+		if (pos &lt; tm)
+			update(pos, val, tl, tm, 2*v);
+		else
+			update(pos, val, tm, tr, 2*v+1);
+		t[v] = t[2*v] + t[2*v+1];
+	}
+}
 					</code></pre>
 				</details>
 				<p>
@@ -157,25 +157,25 @@ void build(int a[], int tl=0, int tr=n, int v=0) {
 }
 
 long long query(int l, int r, int tl=0, int tr=n, int v=0) {
-	if (r <= tl || tr <= l) return 0LL;
-							   if (l <= tl && tr <= r) return t[v];
-							   int tm = (tl+tr)/2;
-							   return query(l, r, tl, tm, v+1)
-							   + query(l, r, tm, tr, v+2*(tm-tl));
-							   }
+	if (r &lt;= tl || tr &lt;= l) return 0LL;
+	if (l &lt;= tl &amp;&amp; tr &lt;= r) return t[v];
+	int tm = (tl+tr)/2;
+	return query(l, r, tl, tm, v+1)
+		 + query(l, r, tm, tr, v+2*(tm-tl));
+}
 
-							   void update(int pos, int val, int tl=0, int tr=n, int v=0) {
-							   if (tr - tl == 1) {
-							   t[v] += val;
-							   } else {
-							   int tm = (tl+tr)/2;
-							   if (pos < tm)
-							   update(pos, val, tl, tm, v+1);
-							   else
-							   update(pos, val, tm, tr, v+2*(tm-tl));
-							   t[v] = t[v+1] + t[v+2*(tm-tl)];
-							   }
-							   }
+void update(int pos, int val, int tl=0, int tr=n, int v=0) {
+	if (tr - tl == 1) {
+		t[v] += val;
+	} else {
+		int tm = (tl+tr)/2;
+		if (pos &lt; tm)
+			update(pos, val, tl, tm, v+1);
+		else
+			update(pos, val, tm, tr, v+2*(tm-tl));
+		t[v] = t[v+1] + t[v+2*(tm-tl)];
+	}
+}
 					</code></pre>
 				</details>
 				<h3>Level Order</h3>
@@ -244,9 +244,9 @@ long long query(int l, int r, int tl=0, int tr=n, int v=0) {
 				power of 2? Well it turns out we can just take whichever case gives the smaller midpoint:</p>
 				<pre><code class="language-cpp">
 int split(int tl, int tr) {
-	int pow_2 = 1 << __lg(tr-tl);
-						   return min(tl+pow_2, tr-pow_2/2);
-						   }
+	int pow_2 = 1 &lt;&lt; __lg(tr-tl);
+	return min(tl+pow_2, tr-pow_2/2);
+}
 				</code></pre>
 				<p>
 				Note it is no longer the middle of range (e.g. "mid" point), hence the name "split". For a full proof, see my <a href="https://codeforces.com/blog/entry/112755">codeforces blog</a>.
@@ -256,45 +256,45 @@ int split(int tl, int tr) {
 					<summary>code</summary>
 					<pre><code class="language-cpp">
 int split(int tl, int tr) {
-	int pow_2 = 1 << __lg(tr-tl);
-							   return min(tl+pow_2, tr-pow_2/2);
-							   }
+	int pow_2 = 1 &lt;&lt; __lg(tr-tl);
+	return min(tl+pow_2, tr-pow_2/2);
+}
 
-							   const int MAXN = 500'000;
-							   int n;
-							   long long t[2*MAXN-1];
+const int MAXN = 500'000;
+int n;
+long long t[2*MAXN-1];
 
-							   void build(int a[], int tl=0, int tr=n, int v=0) {
-							   if (tr - tl == 1) {
-							   t[v] = a[tl];
-							   } else {
-							   int tm = split(tl, tr);
-							   build(a, tl, tm, 2*v+1);
-							   build(a, tm, tr, 2*v+2);
-							   t[v] = t[2*v+1] + t[2*v+2];
-							   }
-							   }
+void build(int a[], int tl=0, int tr=n, int v=0) {
+	if (tr - tl == 1) {
+		t[v] = a[tl];
+	} else {
+		int tm = split(tl, tr);
+		build(a, tl, tm, 2*v+1);
+		build(a, tm, tr, 2*v+2);
+		t[v] = t[2*v+1] + t[2*v+2];
+	}
+}
 
-							   long long query(int l, int r, int tl=0, int tr=n, int v=0) {
-							   if (r <= tl || tr <= l) return 0LL;
-							   if (l <= tl && tr <= r) return t[v];
-							   int tm = split(tl, tr);
-							   return query(l, r, tl, tm, 2*v+1)
-							   + query(l, r, tm, tr, 2*v+2);
-							   }
+long long query(int l, int r, int tl=0, int tr=n, int v=0) {
+	if (r &lt;= tl || tr &lt;= l) return 0LL;
+	if (l &lt;= tl && tr &lt;= r) return t[v];
+	int tm = split(tl, tr);
+	return query(l, r, tl, tm, 2*v+1)
+		 + query(l, r, tm, tr, 2*v+2);
+}
 
-							   void update(int pos, int val, int tl=0, int tr=n, int v=0) {
-							   if (tr - tl == 1) {
-							   t[v] += val;
-							   } else {
-							   int tm = split(tl, tr);
-							   if (pos < tm)
-							   update(pos, val, tl, tm, 2*v+1);
-							   else
-							   update(pos, val, tm, tr, 2*v+2);
-							   t[v] = t[2*v+1] + t[2*v+2];
-							   }
-							   }
+void update(int pos, int val, int tl=0, int tr=n, int v=0) {
+	if (tr - tl == 1) {
+		t[v] += val;
+	} else {
+		int tm = split(tl, tr);
+		if (pos &lt; tm)
+			update(pos, val, tl, tm, 2*v+1);
+		else
+			update(pos, val, tm, tr, 2*v+2);
+		t[v] = t[2*v+1] + t[2*v+2];
+	}
+}
 					</code></pre>
 				</details>
 				<h3>In Order</h3>
@@ -376,7 +376,7 @@ int split(int tl, int tr) {
 				<p>Leaves each have range \([tl, tl+1)\) which we can map to an even index \(2 \cdot tl\). So we can write a function like:</p>
 				<pre><code class="language-cpp">
 int in_order(int tl, int tr) {
-	return tr-tl > 1 ? (tl+tr)/2*2-1 : 2*tl;
+	return tr-tl &gt; 1 ? (tl+tr)/2*2-1 : 2*tl;
 }
 				</code></pre>
 				<p>And we can code segment trees like:</p>
@@ -384,7 +384,7 @@ int in_order(int tl, int tr) {
 					<summary>code</summary>
 					<pre><code class="language-cpp">
 int in_order(int tl, int tr) {
-	return tr-tl > 1 ? (tl+tr)/2*2-1 : 2*tl;
+	return tr-tl &gt; 1 ? (tl+tr)/2*2-1 : 2*tl;
 }
 
 const int MAXN = 500'000;
@@ -403,25 +403,25 @@ void build(int a[], int tl=0, int tr=n) {
 }
 
 long long query(int l, int r, int tl=0, int tr=n) {
-	if (r <= tl || tr <= l) return 0LL;
-							   if (l <= tl && tr <= r) return t[in_order(tl,tr)];
-							   int tm = (tl+tr)/2;
-							   return query(l, r, tl, tm)
-							   + query(l, r, tm, tr);
-							   }
+	if (r &lt;= tl || tr &lt;= l) return 0LL;
+	if (l &lt;= tl &amp;&amp; tr &lt;= r) return t[in_order(tl,tr)];
+	int tm = (tl+tr)/2;
+	return query(l, r, tl, tm)
+		 + query(l, r, tm, tr);
+}
 
-							   void update(int pos, int val, int tl=0, int tr=n) {
-							   if (tr - tl == 1) {
-							   t[in_order(tl,tr)] += val;
-							   } else {
-							   int tm = (tl+tr)/2;
-							   if (pos < tm)
-							   update(pos, val, tl, tm);
-							   else
-							   update(pos, val, tm, tr);
-							   t[in_order(tl,tr)] = t[in_order(tl,tm)] + t[in_order(tm,tr)];
-							   }
-							   }
+void update(int pos, int val, int tl=0, int tr=n) {
+	if (tr - tl == 1) {
+		t[in_order(tl,tr)] += val;
+	} else {
+		int tm = (tl+tr)/2;
+		if (pos &lt; tm)
+			update(pos, val, tl, tm);
+		else
+			update(pos, val, tm, tr);
+		t[in_order(tl,tr)] = t[in_order(tl,tm)] + t[in_order(tm,tr)];
+	}
+}
 					</code></pre>
 				</details>
 				<hr>
