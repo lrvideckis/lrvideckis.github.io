@@ -204,8 +204,8 @@
 					<pre><code class="language-cpp">
 // https://oeis.org/A006519
 int a(int i) {
-	assert(i >= 1);
-	return i & -i;
+	assert(i &gt;= 1);
+	return i &amp; -i;
 }
 
 struct linear_level_ancestor {
@@ -220,15 +220,15 @@ struct linear_level_ancestor {
 	vector&lt;int&gt; dfs_stack;
 	vector&lt;vector&lt;int&gt;&gt; ladder;
 
-	linear_level_ancestor(const vector&lt;vector&lt;int&gt;&gt;& adj) : n(ssize(adj)), adj(adj), depth(n), parent(n), deepest_leaf(n), euler_tour_index(n), ladder(n) {
+	linear_level_ancestor(const vector&lt;vector&lt;int&gt;&gt;&amp; adj) : n(ssize(adj)), adj(adj), depth(n), parent(n), deepest_leaf(n), euler_tour_index(n), ladder(n) {
 		dfs(0);
 		assert(ssize(jump) == 2 * n - 1);
-		for (int i = 0; i < n; i++)
+		for (int i = 0; i &lt; n; i++)
 			if (parent[i] == i || deepest_leaf[parent[i]] != deepest_leaf[i]) {
 				int leaf = deepest_leaf[i];
-				auto& lad = ladder[leaf];
+				auto&amp; lad = ladder[leaf];
 				lad.resize(min((depth[leaf] - depth[i]) * 5, depth[leaf] + 1), leaf);
-				for (int k = 1; k < ssize(lad); k++)
+				for (int k = 1; k &lt; ssize(lad); k++)
 					lad[k] = parent[lad[k - 1]];
 			}
 	}
@@ -236,7 +236,7 @@ struct linear_level_ancestor {
 	void add_jump() {
 		jump.push_back(dfs_stack[0]);
 		int i = ssize(dfs_stack) - 1 - a(ssize(jump));
-		if (i > 0) jump.back() = dfs_stack[i];
+		if (i &gt; 0) jump.back() = dfs_stack[i];
 	}
 
 	void dfs(int u) {
@@ -250,7 +250,7 @@ struct linear_level_ancestor {
 			depth[v] = depth[u] + 1;
 			dfs(v);
 			add_jump();
-			if (depth[deepest_leaf[u]] < depth[deepest_leaf[v]])
+			if (depth[deepest_leaf[u]] &lt; depth[deepest_leaf[v]])
 				deepest_leaf[u] = deepest_leaf[v];
 		}
 		dfs_stack.pop_back();
@@ -258,18 +258,18 @@ struct linear_level_ancestor {
 
 	//kth parent of u
 	int LA(int u, int k) {
-		assert(0 <= k && k <= depth[u]);
+		assert(0 &lt;= k &amp;&amp; k &lt;= depth[u]);
 		if (k == 0) return u;
 		if (k == 1) return parent[u];
 		int target_value = bit_floor(unsigned(k / 2));
-		assert(2 * target_value <= k && k < 4 * target_value);
+		assert(2 * target_value &lt;= k &amp;&amp; k &lt; 4 * target_value);
 		//now want to find closest index j with a(j) == target_value
-		int j = (euler_tour_index[u] & -target_value) | target_value;
+		int j = (euler_tour_index[u] &amp; -target_value) | target_value;
 		assert(a(j) == target_value);
-		assert(abs(j - euler_tour_index[u]) <= target_value);
+		assert(abs(j - euler_tour_index[u]) &lt;= target_value);
 		int leaf = deepest_leaf[jump[j - 1]];
 		k += depth[leaf] - depth[u];
-		assert(0 <= k && k < ssize(ladder[leaf]));
+		assert(0 &lt;= k &amp;&amp; k &lt; ssize(ladder[leaf]));
 		return ladder[leaf][k];
 	}
 };
@@ -334,8 +334,8 @@ struct linear_level_ancestor {
 
 // https://oeis.org/A006519
 int a(int i) {
-	assert(i >= 1);
-	return i & -i;
+	assert(i &gt;= 1);
+	return i &amp; -i;
 }
 
 struct linear_level_ancestor {
@@ -351,16 +351,16 @@ struct linear_level_ancestor {
 	vector&lt;int&gt; dfs_stack;
 	vector&lt;vector&lt;int&gt;&gt; ladder;
 
-	linear_level_ancestor(const vector&lt;vector&lt;int&gt;&gt;& adj, int kappa) : n(ssize(adj)), kappa(kappa), adj(adj), depth(n), parent(n), deepest_leaf(n), euler_tour_index(n), ladder(n) {
-		assert(kappa >= 2);
+	linear_level_ancestor(const vector&lt;vector&lt;int&gt;&gt;&amp; adj, int kappa) : n(ssize(adj)), kappa(kappa), adj(adj), depth(n), parent(n), deepest_leaf(n), euler_tour_index(n), ladder(n) {
+		assert(kappa &gt;= 2);
 		dfs(0);
 		assert(ssize(jump) == 2 * n - 1);
-		for (int i = 0; i < n; i++)
+		for (int i = 0; i &lt; n; i++)
 			if (parent[i] == i || deepest_leaf[parent[i]] != deepest_leaf[i]) {
 				int leaf = deepest_leaf[i];
-				auto& lad = ladder[leaf];
+				auto&amp; lad = ladder[leaf];
 				lad.resize(min((depth[leaf] - depth[i]) * (2 * kappa + 1) / (kappa - 1), depth[leaf] + 1), leaf);
-				for (int k = 1; k < ssize(lad); k++)
+				for (int k = 1; k &lt; ssize(lad); k++)
 					lad[k] = parent[lad[k - 1]];
 			}
 	}
@@ -368,7 +368,7 @@ struct linear_level_ancestor {
 	void add_jump() {
 		jump.push_back(dfs_stack[0]);
 		int i = ssize(dfs_stack) - 1 - (kappa - 1) * a(ssize(jump));
-		if (i > 0) jump.back() = dfs_stack[i];
+		if (i &gt; 0) jump.back() = dfs_stack[i];
 	}
 
 	void dfs(int u) {
@@ -382,7 +382,7 @@ struct linear_level_ancestor {
 			depth[v] = depth[u] + 1;
 			dfs(v);
 			add_jump();
-			if (depth[deepest_leaf[u]] < depth[deepest_leaf[v]])
+			if (depth[deepest_leaf[u]] &lt; depth[deepest_leaf[v]])
 				deepest_leaf[u] = deepest_leaf[v];
 		}
 		dfs_stack.pop_back();
@@ -390,19 +390,19 @@ struct linear_level_ancestor {
 
 	//kth parent of u
 	int LA(int u, int k) {
-		assert(0 <= k && k <= depth[u]);
-		if(k < kappa) {
+		assert(0 &lt;= k &amp;&amp; k &lt;= depth[u]);
+		if(k &lt; kappa) {
 			while(k--) u = parent[u];
 			return u;
 		}
 		int target_value = bit_floor(unsigned(k / kappa));
-		assert(kappa * target_value <= k && k < 2 * kappa * target_value);
-		int j = (euler_tour_index[u] & -target_value) | target_value;
+		assert(kappa * target_value &lt;= k &amp;&amp; k &lt; 2 * kappa * target_value);
+		int j = (euler_tour_index[u] &amp; -target_value) | target_value;
 		assert(a(j) == target_value);
-		assert(abs(j - euler_tour_index[u]) <= target_value);
+		assert(abs(j - euler_tour_index[u]) &lt;= target_value);
 		int leaf = deepest_leaf[jump[j - 1]];
 		k += depth[leaf] - depth[u];
-		assert(0 <= k && k < ssize(ladder[leaf]));
+		assert(0 &lt;= k &amp;&amp; k &lt; ssize(ladder[leaf]));
 		return ladder[leaf][k];
 	}
 };
