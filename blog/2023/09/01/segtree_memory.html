@@ -1,390 +1,390 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Segment Trees</title>
-        <link rel="stylesheet" href="/style.css">
-        <link rel="stylesheet" href="/highlight/styles/github.min.css">
-        <script src="/highlight/highlight.min.js"></script>
-        <script>
-            document.addEventListener('DOMContentLoaded', (event) => {
-                document.querySelectorAll('pre code').forEach((block) => {
-                    hljs.highlightBlock(block);
-                });
-            });
-        </script>
-        <script src="/mathjax/es5/tex-chtml.js" id="MathJax-script" async></script>
-    </head>
-    <body>
-        <script type="text/javascript" language="javascript" src="/navagation_bar.js"></script>
-        <div class="body">
-            <div class="heading">
-                <h1 class="main_title">Coding Segment Trees with Optimal Memory</h1>
-                <h2 class="blog_date">2023 September 1</h2>
-            </div>
-            <br>
-            <div class="main_content">
-                <h3>Background</h3>
-                <p>
-For background about what a segment tree is, I recommend the
-                <a href="https://cp-algorithms.com/data_structures/segment_tree.html">CP algorithms article</a>.
-                </p>
-                <hr>
-                <p>
-                The
-<a href="https://cp-algorithms.com/data_structures/segment_tree.html#implementation">standard implementation</a>
-of a segment tree uses an array \(t\) of size \(4 \cdot n\).
-                This blog discusses 3 different ways how to index the
-                nodes in a segment tree to achieve (optimal) \(2 \cdot n-1\) memory.
-                </p>
-                <details>
-                    <summary>why is \(2 \cdot n-1\) optimal?</summary>
-                    <ul>
-                        <li>A segment tree has \(n\) leaf nodes; 1 for each of the \(n\) elements in the array</li>
-                        <li>A segment tree is a <a href="https://en.wikipedia.org/wiki/Binary_tree#Types_of_binary_trees">full binary tree</a>; each internal node has exactly 2 children. Thus there are \(n-1\) internal nodes.</li>
-                        <img src="bst_leaf_vs_internal_nodes.png" alt="leaf versus internal" style="width:540px;height:auto;">
-                    </ul>
-                </details>
-                <p>
-                Let's look at the "standard" implementation:
-                </p>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Segment Trees</title>
+		<link rel="stylesheet" href="/style.css">
+		<link rel="stylesheet" href="/highlight/styles/github.min.css">
+		<script src="/highlight/highlight.min.js"></script>
+		<script>
+			document.addEventListener('DOMContentLoaded', (event) => {
+				document.querySelectorAll('pre code').forEach((block) => {
+					hljs.highlightBlock(block);
+				});
+			});
+		</script>
+		<script src="/mathjax/es5/tex-chtml.js" id="MathJax-script" async></script>
+	</head>
+	<body>
+		<script type="text/javascript" language="javascript" src="/navagation_bar.js"></script>
+		<div class="body">
+			<div class="heading">
+				<h1 class="main_title">Coding Segment Trees with Optimal Memory</h1>
+				<h2 class="blog_date">2023 September 1</h2>
+			</div>
+			<br>
+			<div class="main_content">
+				<h3>Background</h3>
+				<p>
+				For background about what a segment tree is, I recommend the
+				<a href="https://cp-algorithms.com/data_structures/segment_tree.html">CP algorithms article</a>.
+				</p>
+				<hr>
+				<p>
+				The
+				<a href="https://cp-algorithms.com/data_structures/segment_tree.html#implementation">standard implementation</a>
+				of a segment tree uses an array \(t\) of size \(4 \cdot n\).
+				This blog discusses 3 different ways how to index the
+				nodes in a segment tree to achieve (optimal) \(2 \cdot n-1\) memory.
+				</p>
+				<details>
+					<summary>why is \(2 \cdot n-1\) optimal?</summary>
+					<ul>
+						<li>A segment tree has \(n\) leaf nodes; 1 for each of the \(n\) elements in the array</li>
+						<li>A segment tree is a <a href="https://en.wikipedia.org/wiki/Binary_tree#Types_of_binary_trees">full binary tree</a>; each internal node has exactly 2 children. Thus there are \(n-1\) internal nodes.</li>
+						<img src="bst_leaf_vs_internal_nodes.png" alt="leaf versus internal" style="width:540px;height:auto;">
+					</ul>
+				</details>
+				<p>
+				Let's look at the "standard" implementation:
+				</p>
 
-                <details>
-                    <summary>code</summary>
-                    <pre><code class="language-cpp">
+				<details>
+					<summary>code</summary>
+					<pre><code class="language-cpp">
 const int MAXN = 500'000;
 int n;
 long long t[4*MAXN];
 
 void build(int a[], int tl=0, int tr=n, int v=1) {
-    if (tr - tl == 1) {
-        t[v] = a[tl];
-    } else {
-        int tm = (tl+tr)/2;
-        build(a, tl, tm, 2*v);
-        build(a, tm, tr, 2*v+1);
-        t[v] = t[2*v] + t[2*v+1];
-    }
+	if (tr - tl == 1) {
+		t[v] = a[tl];
+	} else {
+		int tm = (tl+tr)/2;
+		build(a, tl, tm, 2*v);
+		build(a, tm, tr, 2*v+1);
+		t[v] = t[2*v] + t[2*v+1];
+	}
 }
 
 long long query(int l, int r, int tl=0, int tr=n, int v=1) {
-    if (r <= tl || tr <= l) return 0LL;
-    if (l <= tl && tr <= r) return t[v];
-    int tm = (tl+tr)/2;
-    return query(l, r, tl, tm, 2*v)
-         + query(l, r, tm, tr, 2*v+1);
-}
+	if (r <= tl || tr <= l) return 0LL;
+							   if (l <= tl && tr <= r) return t[v];
+							   int tm = (tl+tr)/2;
+							   return query(l, r, tl, tm, 2*v)
+							   + query(l, r, tm, tr, 2*v+1);
+							   }
 
-void update(int pos, int val, int tl=0, int tr=n, int v=1) {
-    if (tr - tl == 1) {
-        t[v] += val;
-    } else {
-        int tm = (tl+tr)/2;
-        if (pos < tm)
-            update(pos, val, tl, tm, 2*v);
-        else
-            update(pos, val, tm, tr, 2*v+1);
-        t[v] = t[2*v] + t[2*v+1];
-    }
-}
-                    </code></pre>
-                </details>
-                <p>
-                Notes:
-                </p>
-                <ul>
-                    <li>Update: do \(a[pos]\) += \(val\)</li>
-                    <li>Query: calculate \(\sum\limits_{i=l}^{r-1} a[i]\)</li>
-                    <li>The node with index \(v\) has inclusive-exclusive range \([tl, tr)\)</li>
-                    <li>Range \([tl, tr)\) splits into ranges \([tl, tm)\) and \([tm, tr)\)</li>
-                    <li>Node \(v\) has children \(2 \cdot v\), \(2 \cdot v + 1\), and parent \(\lfloor\frac{v}{2}\rfloor\). This is known as the <a href="https://en.algorithmica.org/hpc/data-structures/binary-search/#eytzinger-layout">Eytzinger Layout</a>.</li>
-                </ul>
-                <hr>
-                <p>
-                Our approach to optimize the memory will be to take some traversial of the tree, and index the nodes \(0,1,...,2 \cdot n-2\) in order of this traversial. Now there many ways to traverse a binary tree:
-                </p>
-                <ul>
-                    <li>Pre order (dfs)</li>
-                    <li>In order (dfs)</li>
-                    <li>Post order (dfs)</li>
-                    <li>Level order (bfs)</li>
-                </ul>
-                <p>But pre order and post order are symmetrical, so I'll only focus on pre order.</p>
-                <h3>Pre Order</h3>
-                <p>First, the <a
-                    href="https://cp-algorithms.com/data_structures/segment_tree.html#memory-efficient-implementation">source</a>
-                for the idea for this approach. Now, an example of indexing the
-                pre-order of a full binary tree
-                \(0,1,2,...\)</p>
-                <img src="bst_pre_order.png" alt="bst pre order" style="width:540px;height:auto;">
-                <p>
-                First for segment trees, a node with range \([tl, tr)\) has subtree size = \[2*(tr-tl)-1\]
-                </p>
-                <details>
-                    <summary>how to derive this</summary>
-                    <ol>
-                        <li>range \([tl, tr)\) contains \(tr-tl\) leaf nodes representing \(a[tl], a[tl+1], ..., a[tr-1]\)</li>
-                        <li>In a full binary tree, any subtree with \(k\) leaves will have \(k-1\) internal nodes</li>
-                    </ol>
-                </details>
-                <p>
-                Observations:
-                </p>
-                <ul>
-                    <li>The root is \(0\)</li>
-                    <li>A node \(v\)'s left child has index \(v+1\)</li>
-                    <li>A node \(v\)'s right child has index \(v+1+(\text{size of left subtree}) = v+1+(2 \cdot (tm-tl)-1)\)</li>
-                </ul>
-                <p>So we can code segment trees with \(2*n-1\) memory like:</p>
+							   void update(int pos, int val, int tl=0, int tr=n, int v=1) {
+							   if (tr - tl == 1) {
+							   t[v] += val;
+							   } else {
+							   int tm = (tl+tr)/2;
+							   if (pos < tm)
+							   update(pos, val, tl, tm, 2*v);
+							   else
+							   update(pos, val, tm, tr, 2*v+1);
+							   t[v] = t[2*v] + t[2*v+1];
+							   }
+							   }
+					</code></pre>
+				</details>
+				<p>
+				Notes:
+				</p>
+				<ul>
+					<li>Update: do \(a[pos]\) += \(val\)</li>
+					<li>Query: calculate \(\sum\limits_{i=l}^{r-1} a[i]\)</li>
+					<li>The node with index \(v\) has inclusive-exclusive range \([tl, tr)\)</li>
+					<li>Range \([tl, tr)\) splits into ranges \([tl, tm)\) and \([tm, tr)\)</li>
+					<li>Node \(v\) has children \(2 \cdot v\), \(2 \cdot v + 1\), and parent \(\lfloor\frac{v}{2}\rfloor\). This is known as the <a href="https://en.algorithmica.org/hpc/data-structures/binary-search/#eytzinger-layout">Eytzinger Layout</a>.</li>
+				</ul>
+				<hr>
+				<p>
+				Our approach to optimize the memory will be to take some traversial of the tree, and index the nodes \(0,1,...,2 \cdot n-2\) in order of this traversial. Now there many ways to traverse a binary tree:
+				</p>
+				<ul>
+					<li>Pre order (dfs)</li>
+					<li>In order (dfs)</li>
+					<li>Post order (dfs)</li>
+					<li>Level order (bfs)</li>
+				</ul>
+				<p>But pre order and post order are symmetrical, so I'll only focus on pre order.</p>
+				<h3>Pre Order</h3>
+				<p>First, the <a
+									  href="https://cp-algorithms.com/data_structures/segment_tree.html#memory-efficient-implementation">source</a>
+				for the idea for this approach. Now, an example of indexing the
+				pre-order of a full binary tree
+				\(0,1,2,...\)</p>
+				<img src="bst_pre_order.png" alt="bst pre order" style="width:540px;height:auto;">
+				<p>
+				First for segment trees, a node with range \([tl, tr)\) has subtree size = \[2*(tr-tl)-1\]
+				</p>
+				<details>
+					<summary>how to derive this</summary>
+					<ol>
+						<li>range \([tl, tr)\) contains \(tr-tl\) leaf nodes representing \(a[tl], a[tl+1], ..., a[tr-1]\)</li>
+						<li>In a full binary tree, any subtree with \(k\) leaves will have \(k-1\) internal nodes</li>
+					</ol>
+				</details>
+				<p>
+				Observations:
+				</p>
+				<ul>
+					<li>The root is \(0\)</li>
+					<li>A node \(v\)'s left child has index \(v+1\)</li>
+					<li>A node \(v\)'s right child has index \(v+1+(\text{size of left subtree}) = v+1+(2 \cdot (tm-tl)-1)\)</li>
+				</ul>
+				<p>So we can code segment trees with \(2*n-1\) memory like:</p>
 
-                <details>
-                    <summary>code</summary>
-                    <pre><code class="language-cpp">
+				<details>
+					<summary>code</summary>
+					<pre><code class="language-cpp">
 const int MAXN = 500'000;
 int n;
 long long t[2*MAXN-1];
 
 void build(int a[], int tl=0, int tr=n, int v=0) {
-    if (tr - tl == 1) {
-        t[v] = a[tl];
-    } else {
-        int tm = (tl+tr)/2;
-        build(a, tl, tm, v+1);
-        build(a, tm, tr, v+2*(tm-tl));
-        t[v] = t[v+1] + t[v+2*(tm-tl)];
-    }
+	if (tr - tl == 1) {
+		t[v] = a[tl];
+	} else {
+		int tm = (tl+tr)/2;
+		build(a, tl, tm, v+1);
+		build(a, tm, tr, v+2*(tm-tl));
+		t[v] = t[v+1] + t[v+2*(tm-tl)];
+	}
 }
 
 long long query(int l, int r, int tl=0, int tr=n, int v=0) {
-    if (r <= tl || tr <= l) return 0LL;
-    if (l <= tl && tr <= r) return t[v];
-    int tm = (tl+tr)/2;
-    return query(l, r, tl, tm, v+1)
-         + query(l, r, tm, tr, v+2*(tm-tl));
-}
+	if (r <= tl || tr <= l) return 0LL;
+							   if (l <= tl && tr <= r) return t[v];
+							   int tm = (tl+tr)/2;
+							   return query(l, r, tl, tm, v+1)
+							   + query(l, r, tm, tr, v+2*(tm-tl));
+							   }
 
-void update(int pos, int val, int tl=0, int tr=n, int v=0) {
-    if (tr - tl == 1) {
-        t[v] += val;
-    } else {
-        int tm = (tl+tr)/2;
-        if (pos < tm)
-            update(pos, val, tl, tm, v+1);
-        else
-            update(pos, val, tm, tr, v+2*(tm-tl));
-        t[v] = t[v+1] + t[v+2*(tm-tl)];
-    }
-}
-                    </code></pre>
-                </details>
-                <h3>Level Order</h3>
-                <p>Let's take inspiration from the "standard" max-heap implementation:</p>
-                <img src="bst_level_order.png" alt="bst level order" style="width:540px;height:auto;">
-                <ul>
-                    <li>It's a <a href="https://en.wikipedia.org/wiki/Binary_tree#Types_of_binary_trees">complete binary tree</a></li>
-                    <li>It uses the <a href="https://en.algorithmica.org/hpc/data-structures/binary-search/#eytzinger-layout">Eytzinger Layout</a> (in our case, shifted down by one), thus:
-                        <ul>
-                            <li>The root is \(0\)</li>
-                            <li>node \(v\)'s left child has index \(2 \cdot v+1\), right child has index \(2 \cdot v+2\)
-                                <details>
-                                    <summary>how to derive right child formula</summary>
-                                    <ol>
-                                        <li>"shift" up 1</li>
-                                        <li>apply right child formula</li>
-                                        <li>"shift" down 1</li>
-                                    </ol>
-                                    like: \((2 \cdot (v+1)+1)-1\)
-                                </details>
-                            </li>
-                            <li>the \(k\) nodes have distinct indexes in range \([0, k-1]\) (this is only true because it's complete). For segment trees, \(k=2 \cdot n-1\)</li>
-                        </ul>
-                    </li>
-                </ul>
-                <hr>
-                <p>Let's try to make this indexing layout work for segment
-                trees. Usually for segtrees, each node \(v\) has midpoint
-                \(tm=\lfloor\frac{tl+tr}{2}\rfloor\).</p>
-                <details>
-                    <summary>Do you see the problem with this midpoint?</summary>
-                    <p>A complete binary tree's left subtree could be much
-                    larger that the right; (and for segment trees, the subtree
-                    size is proportional to the node's segment length) so the
-                    midpoint isn't always exactly in the middle.</p>
-                </details>
-                <p>Let's split it into 2 cases:</p>
-                <div class="slide-container">
-                <img src="complete_bst_case_1.png" alt="complete BST case 1" style="width:460px;height:auto;">
-                <img src="complete_bst_case_2.png" alt="complete BST case 2" style="width:460px;height:auto;">
-                </div>
-                <p>Observe:</p>
-                <ul>
-                    <li>
-                        for complete binary trees, either the left or right child's subtree is a
-                        <a href="https://youtu.be/dQw4w9WgXcQ">perfect binary tree</a>
-                    </li>
-                    <li>
-                        for segment trees, if a node \(v\)'s subtree is
-                        perfect, then it's range \([tl, tr)\) has length
-                        \(=2^k=tr-tl\) for some \(k\)
-                    </li>
-                </ul>
-                <p>Let's revisit the cases in more detail.</p>
-                <img src="complete_bst_case_1_with_ranges.png" alt="complete BST case 1" style="width:540px;height:auto;">
-                <p>Here, the left child's subtree is clearly bigger than the right child's subtree, so
-                \[\lceil\frac{tr-tl}{2}\rceil &le; 2^k &le; tr-tl\]</p>
-                <img src="number_line_case_1.png" alt="number line case 1" style="width:400px;height:auto;">
-                <hr>
-                <img src="complete_bst_case_2_with_ranges.png" alt="complete BST case 2" style="width:540px;height:auto;">
-                <p>Again the left child's subtree is clearly bigger, so
-                \(2^k &le; \lfloor\frac{tr-tl}{2}\rfloor\).</p>
-                <img src="number_line_case_2.png" alt="number line case 2" style="width:400px;height:auto;">
-                <hr>
-                <p>But how to know which case we're in? And how to know which
-                power of 2? Well it turns out we can just take whichever case gives the smaller midpoint:</p>
-                <pre><code class="language-cpp">
+							   void update(int pos, int val, int tl=0, int tr=n, int v=0) {
+							   if (tr - tl == 1) {
+							   t[v] += val;
+							   } else {
+							   int tm = (tl+tr)/2;
+							   if (pos < tm)
+							   update(pos, val, tl, tm, v+1);
+							   else
+							   update(pos, val, tm, tr, v+2*(tm-tl));
+							   t[v] = t[v+1] + t[v+2*(tm-tl)];
+							   }
+							   }
+					</code></pre>
+				</details>
+				<h3>Level Order</h3>
+				<p>Let's take inspiration from the "standard" max-heap implementation:</p>
+				<img src="bst_level_order.png" alt="bst level order" style="width:540px;height:auto;">
+				<ul>
+					<li>It's a <a href="https://en.wikipedia.org/wiki/Binary_tree#Types_of_binary_trees">complete binary tree</a></li>
+					<li>It uses the <a href="https://en.algorithmica.org/hpc/data-structures/binary-search/#eytzinger-layout">Eytzinger Layout</a> (in our case, shifted down by one), thus:
+						<ul>
+							<li>The root is \(0\)</li>
+							<li>node \(v\)'s left child has index \(2 \cdot v+1\), right child has index \(2 \cdot v+2\)
+								<details>
+									<summary>how to derive right child formula</summary>
+									<ol>
+										<li>"shift" up 1</li>
+										<li>apply right child formula</li>
+										<li>"shift" down 1</li>
+									</ol>
+									like: \((2 \cdot (v+1)+1)-1\)
+								</details>
+							</li>
+							<li>the \(k\) nodes have distinct indexes in range \([0, k-1]\) (this is only true because it's complete). For segment trees, \(k=2 \cdot n-1\)</li>
+						</ul>
+					</li>
+				</ul>
+				<hr>
+				<p>Let's try to make this indexing layout work for segment
+				trees. Usually for segtrees, each node \(v\) has midpoint
+				\(tm=\lfloor\frac{tl+tr}{2}\rfloor\).</p>
+				<details>
+					<summary>Do you see the problem with this midpoint?</summary>
+					<p>A complete binary tree's left subtree could be much
+					larger that the right; (and for segment trees, the subtree
+					size is proportional to the node's segment length) so the
+					midpoint isn't always exactly in the middle.</p>
+				</details>
+				<p>Let's split it into 2 cases:</p>
+				<div class="slide-container">
+					<img src="complete_bst_case_1.png" alt="complete BST case 1" style="width:460px;height:auto;">
+					<img src="complete_bst_case_2.png" alt="complete BST case 2" style="width:460px;height:auto;">
+				</div>
+				<p>Observe:</p>
+				<ul>
+					<li>
+						for complete binary trees, either the left or right child's subtree is a
+						<a href="https://youtu.be/dQw4w9WgXcQ">perfect binary tree</a>
+					</li>
+					<li>
+						for segment trees, if a node \(v\)'s subtree is
+						perfect, then it's range \([tl, tr)\) has length
+						\(=2^k=tr-tl\) for some \(k\)
+					</li>
+				</ul>
+				<p>Let's revisit the cases in more detail.</p>
+				<img src="complete_bst_case_1_with_ranges.png" alt="complete BST case 1" style="width:540px;height:auto;">
+				<p>Here, the left child's subtree is clearly bigger than the right child's subtree, so
+				\[\lceil\frac{tr-tl}{2}\rceil &le; 2^k &le; tr-tl\]</p>
+				<img src="number_line_case_1.png" alt="number line case 1" style="width:400px;height:auto;">
+				<hr>
+				<img src="complete_bst_case_2_with_ranges.png" alt="complete BST case 2" style="width:540px;height:auto;">
+				<p>Again the left child's subtree is clearly bigger, so
+				\(2^k &le; \lfloor\frac{tr-tl}{2}\rfloor\).</p>
+				<img src="number_line_case_2.png" alt="number line case 2" style="width:400px;height:auto;">
+				<hr>
+				<p>But how to know which case we're in? And how to know which
+				power of 2? Well it turns out we can just take whichever case gives the smaller midpoint:</p>
+				<pre><code class="language-cpp">
 int split(int tl, int tr) {
-    int pow_2 = 1 << __lg(tr-tl);
-    return min(tl+pow_2, tr-pow_2/2);
-}
-                </code></pre>
-                <p>
-                Note it is no longer the middle of range (e.g. "mid" point), hence the name "split". For a full proof, see my <a href="https://codeforces.com/blog/entry/112755">codeforces blog</a>.
-                </p>
-                <p>We can code segment trees like:</p>
-                <details>
-                    <summary>code</summary>
-                    <pre><code class="language-cpp">
+	int pow_2 = 1 << __lg(tr-tl);
+						   return min(tl+pow_2, tr-pow_2/2);
+						   }
+				</code></pre>
+				<p>
+				Note it is no longer the middle of range (e.g. "mid" point), hence the name "split". For a full proof, see my <a href="https://codeforces.com/blog/entry/112755">codeforces blog</a>.
+				</p>
+				<p>We can code segment trees like:</p>
+				<details>
+					<summary>code</summary>
+					<pre><code class="language-cpp">
 int split(int tl, int tr) {
-    int pow_2 = 1 << __lg(tr-tl);
-    return min(tl+pow_2, tr-pow_2/2);
-}
+	int pow_2 = 1 << __lg(tr-tl);
+							   return min(tl+pow_2, tr-pow_2/2);
+							   }
 
-const int MAXN = 500'000;
-int n;
-long long t[2*MAXN-1];
+							   const int MAXN = 500'000;
+							   int n;
+							   long long t[2*MAXN-1];
 
-void build(int a[], int tl=0, int tr=n, int v=0) {
-    if (tr - tl == 1) {
-        t[v] = a[tl];
-    } else {
-        int tm = split(tl, tr);
-        build(a, tl, tm, 2*v+1);
-        build(a, tm, tr, 2*v+2);
-        t[v] = t[2*v+1] + t[2*v+2];
-    }
-}
+							   void build(int a[], int tl=0, int tr=n, int v=0) {
+							   if (tr - tl == 1) {
+							   t[v] = a[tl];
+							   } else {
+							   int tm = split(tl, tr);
+							   build(a, tl, tm, 2*v+1);
+							   build(a, tm, tr, 2*v+2);
+							   t[v] = t[2*v+1] + t[2*v+2];
+							   }
+							   }
 
-long long query(int l, int r, int tl=0, int tr=n, int v=0) {
-    if (r <= tl || tr <= l) return 0LL;
-    if (l <= tl && tr <= r) return t[v];
-    int tm = split(tl, tr);
-    return query(l, r, tl, tm, 2*v+1)
-         + query(l, r, tm, tr, 2*v+2);
-}
+							   long long query(int l, int r, int tl=0, int tr=n, int v=0) {
+							   if (r <= tl || tr <= l) return 0LL;
+							   if (l <= tl && tr <= r) return t[v];
+							   int tm = split(tl, tr);
+							   return query(l, r, tl, tm, 2*v+1)
+							   + query(l, r, tm, tr, 2*v+2);
+							   }
 
-void update(int pos, int val, int tl=0, int tr=n, int v=0) {
-    if (tr - tl == 1) {
-        t[v] += val;
-    } else {
-        int tm = split(tl, tr);
-        if (pos < tm)
-            update(pos, val, tl, tm, 2*v+1);
-        else
-            update(pos, val, tm, tr, 2*v+2);
-        t[v] = t[2*v+1] + t[2*v+2];
-    }
-}
-                    </code></pre>
-                </details>
-                <h3>In Order</h3>
-                <p>First, the <a href="https://codeforces.com/blog/entry/112755#comment-1004569">source</a> for the idea for this approach. An example of indexing the in-order of a full binary tree
-                \(0,1,2,...\)</p>
-                <img src="bst_inorder.png" alt="bst in order" style="width:540px;height:auto;">
-                <p>
-                Observations:
-                </p>
-                <ul>
-                    <li>BST-property: for every node \(v\):
-                        <ul>
-                            <li>All nodes in \(v\)'s left subtree have index \(&lt;v\)</li>
-                            <li>All nodes in \(v\)'s right subtree have index \(&gt;v\)</li>
-                        </ul>
-                    </li>
-                    <li>the total number of nodes is odd; leaves have even indexes; internal nodes have odd indexes (this is only true because it's full)
-                        <details>
-                            <summary>Proof by induction</summary>
-                            <p>
-                            Base case 1:
-                            <br>
-                            <img src="bst_base_case_1.png" alt="base case 1" style="width:60px;height:auto;">
-                            <br>
-                            Base case 2:
-                            <br>
-                            <img src="bst_base_case_2.png" alt="base case 2" style="width:200px;height:auto;">
-                            <br>
-                            Now assume \(T1\), \(T2\) are full binary trees. Imagine
-                            creating a new full binary tree \(T\) by creating a new
-                            root, and setting \(T1\) as the root's left subtree, \(T2\)
-                            as the root's right subtree.
-                            </p>
-                            <p>Denode \(|T|\) as the total number of
-                            nodes in \(T\). \(|T| = 1+|T1|+|T2| = 1+odd+odd = odd\)</p>
-                            <p>The root's index = \(|T1|\) = odd</p>
-                            <p>The indexes of nodes in \(T1\) doesn't change.</p>
-                            <p>The indexes of nodes in \(T2\) each increase by \(1+|T1| = 1+odd = even\), so their parody doesn't change.</p>
-                        </details>
-                    </li>
-                </ul>
-                <hr>
-                <p>
-                Let's look at the same tree, with ranges and midpoints
-                included. What can you observe about the midpoints?
-                </p>
-                <img src="bst_midpoints.png" alt="bst midpoints" style="width:540px;height:auto;">
-                <p>
-                Observations:
-                </p>
-                <ul>
-                    <li>
-                        BST-property for midpoints: for an internal node \(v\) with midpoint \(tm\):
-                        <ul>
-                            <li>All internal nodes in \(v\)'s left subtree have midpoint \(&lt;tm\)</li>
-                            <li>All internal nodes in \(v\)'s right subtree have midpoint \(&gt;tm\)</li>
-                        </ul>
-                        <details>
-                            <summary>How to derive this</summary>
-                            <p>Each internal node \(v\) has:</p>
-                            <ul>
-                                <li>range \([tl, tr)\) with \(tr - tl &ge; 2\)</li>
-                                <li>\(tl &lt; tm = \lfloor\frac{tl+tr}{2}\rfloor &lt; tr\), e.g. the midpoint is strictly inside the range</li>
-                            </ul>
-                            <p>Each node in \(v\)'s left child's subtree has midpoint strictly inside \([tl, tm)\), so it's \(&lt; tm\). (and similarly for \(v\)'s right child)</p>
-                        </details>
-                    </li>
-                    <li>the set of \(n-1\) midpoints (\(tm\)) are distinct, and lie in \([1, n-1]\)
-                        <details>
-                            <summary>How to derive this</summary>
-                            <p>The distinct property follows directly from the above BST-property</p>
-                            <hr>
-                            <p>Each internal node \(v\) has range \([tl, tr) ⊆ [0, n)\), and its midpoint
-                            is strictly inside \([tl, tr)\). So \(0 &le; tl &lt; tm &lt; tr &le; n\), so \(0 &lt; tm &lt; n\).</p>
-                        </details>
-                    </li>
-                </ul>
-                <p>So we have to map the midpoints in \([1, n-1]\) to odd indexes in \([0,2 \cdot n-2]\) with the function \(f(midpoint) = 2 \cdot midpoint-1\) = in-order index</p>
-                <p>Leaves each have range \([tl, tl+1)\) which we can map to an even index \(2 \cdot tl\). So we can write a function like:</p>
-                <pre><code class="language-cpp">
+							   void update(int pos, int val, int tl=0, int tr=n, int v=0) {
+							   if (tr - tl == 1) {
+							   t[v] += val;
+							   } else {
+							   int tm = split(tl, tr);
+							   if (pos < tm)
+							   update(pos, val, tl, tm, 2*v+1);
+							   else
+							   update(pos, val, tm, tr, 2*v+2);
+							   t[v] = t[2*v+1] + t[2*v+2];
+							   }
+							   }
+					</code></pre>
+				</details>
+				<h3>In Order</h3>
+				<p>First, the <a href="https://codeforces.com/blog/entry/112755#comment-1004569">source</a> for the idea for this approach. An example of indexing the in-order of a full binary tree
+				\(0,1,2,...\)</p>
+				<img src="bst_inorder.png" alt="bst in order" style="width:540px;height:auto;">
+				<p>
+				Observations:
+				</p>
+				<ul>
+					<li>BST-property: for every node \(v\):
+						<ul>
+							<li>All nodes in \(v\)'s left subtree have index \(&lt;v\)</li>
+							<li>All nodes in \(v\)'s right subtree have index \(&gt;v\)</li>
+						</ul>
+					</li>
+					<li>the total number of nodes is odd; leaves have even indexes; internal nodes have odd indexes (this is only true because it's full)
+						<details>
+							<summary>Proof by induction</summary>
+							<p>
+							Base case 1:
+							<br>
+							<img src="bst_base_case_1.png" alt="base case 1" style="width:60px;height:auto;">
+							<br>
+							Base case 2:
+							<br>
+							<img src="bst_base_case_2.png" alt="base case 2" style="width:200px;height:auto;">
+							<br>
+							Now assume \(T1\), \(T2\) are full binary trees. Imagine
+							creating a new full binary tree \(T\) by creating a new
+							root, and setting \(T1\) as the root's left subtree, \(T2\)
+							as the root's right subtree.
+							</p>
+							<p>Denode \(|T|\) as the total number of
+							nodes in \(T\). \(|T| = 1+|T1|+|T2| = 1+odd+odd = odd\)</p>
+							<p>The root's index = \(|T1|\) = odd</p>
+							<p>The indexes of nodes in \(T1\) doesn't change.</p>
+							<p>The indexes of nodes in \(T2\) each increase by \(1+|T1| = 1+odd = even\), so their parody doesn't change.</p>
+						</details>
+					</li>
+				</ul>
+				<hr>
+				<p>
+				Let's look at the same tree, with ranges and midpoints
+				included. What can you observe about the midpoints?
+				</p>
+				<img src="bst_midpoints.png" alt="bst midpoints" style="width:540px;height:auto;">
+				<p>
+				Observations:
+				</p>
+				<ul>
+					<li>
+						BST-property for midpoints: for an internal node \(v\) with midpoint \(tm\):
+						<ul>
+							<li>All internal nodes in \(v\)'s left subtree have midpoint \(&lt;tm\)</li>
+							<li>All internal nodes in \(v\)'s right subtree have midpoint \(&gt;tm\)</li>
+						</ul>
+						<details>
+							<summary>How to derive this</summary>
+							<p>Each internal node \(v\) has:</p>
+							<ul>
+								<li>range \([tl, tr)\) with \(tr - tl &ge; 2\)</li>
+								<li>\(tl &lt; tm = \lfloor\frac{tl+tr}{2}\rfloor &lt; tr\), e.g. the midpoint is strictly inside the range</li>
+							</ul>
+							<p>Each node in \(v\)'s left child's subtree has midpoint strictly inside \([tl, tm)\), so it's \(&lt; tm\). (and similarly for \(v\)'s right child)</p>
+						</details>
+					</li>
+					<li>the set of \(n-1\) midpoints (\(tm\)) are distinct, and lie in \([1, n-1]\)
+						<details>
+							<summary>How to derive this</summary>
+							<p>The distinct property follows directly from the above BST-property</p>
+							<hr>
+							<p>Each internal node \(v\) has range \([tl, tr) ⊆ [0, n)\), and its midpoint
+							is strictly inside \([tl, tr)\). So \(0 &le; tl &lt; tm &lt; tr &le; n\), so \(0 &lt; tm &lt; n\).</p>
+						</details>
+					</li>
+				</ul>
+				<p>So we have to map the midpoints in \([1, n-1]\) to odd indexes in \([0,2 \cdot n-2]\) with the function \(f(midpoint) = 2 \cdot midpoint-1\) = in-order index</p>
+				<p>Leaves each have range \([tl, tl+1)\) which we can map to an even index \(2 \cdot tl\). So we can write a function like:</p>
+				<pre><code class="language-cpp">
 int in_order(int tl, int tr) {
-    return tr-tl > 1 ? (tl+tr)/2*2-1 : 2*tl;
+	return tr-tl > 1 ? (tl+tr)/2*2-1 : 2*tl;
 }
-                </code></pre>
-                <p>And we can code segment trees like:</p>
-                <details>
-                    <summary>code</summary>
-                    <pre><code class="language-cpp">
+				</code></pre>
+				<p>And we can code segment trees like:</p>
+				<details>
+					<summary>code</summary>
+					<pre><code class="language-cpp">
 int in_order(int tl, int tr) {
-    return tr-tl > 1 ? (tl+tr)/2*2-1 : 2*tl;
+	return tr-tl > 1 ? (tl+tr)/2*2-1 : 2*tl;
 }
 
 const int MAXN = 500'000;
@@ -392,69 +392,69 @@ int n;
 long long t[2*MAXN-1];
 
 void build(int a[], int tl=0, int tr=n) {
-    if (tr - tl == 1) {
-        t[in_order(tl,tr)] = a[tl];
-    } else {
-        int tm = (tl+tr)/2;
-        build(a, tl, tm);
-        build(a, tm, tr);
-        t[in_order(tl,tr)] = t[in_order(tl,tm)] + t[in_order(tm,tr)];
-    }
+	if (tr - tl == 1) {
+		t[in_order(tl,tr)] = a[tl];
+	} else {
+		int tm = (tl+tr)/2;
+		build(a, tl, tm);
+		build(a, tm, tr);
+		t[in_order(tl,tr)] = t[in_order(tl,tm)] + t[in_order(tm,tr)];
+	}
 }
 
 long long query(int l, int r, int tl=0, int tr=n) {
-    if (r <= tl || tr <= l) return 0LL;
-    if (l <= tl && tr <= r) return t[in_order(tl,tr)];
-    int tm = (tl+tr)/2;
-    return query(l, r, tl, tm)
-         + query(l, r, tm, tr);
-}
+	if (r <= tl || tr <= l) return 0LL;
+							   if (l <= tl && tr <= r) return t[in_order(tl,tr)];
+							   int tm = (tl+tr)/2;
+							   return query(l, r, tl, tm)
+							   + query(l, r, tm, tr);
+							   }
 
-void update(int pos, int val, int tl=0, int tr=n) {
-    if (tr - tl == 1) {
-        t[in_order(tl,tr)] += val;
-    } else {
-        int tm = (tl+tr)/2;
-        if (pos < tm)
-            update(pos, val, tl, tm);
-        else
-            update(pos, val, tm, tr);
-        t[in_order(tl,tr)] = t[in_order(tl,tm)] + t[in_order(tm,tr)];
-    }
-}
-                    </code></pre>
-                </details>
-                <hr>
-                <details>
-                    <summary>How to further code golf this</summary>
-                    <p>If we switch to inclusive-inclusive ranges (so node \(v\) has range \([tl, tr]\), which splits into ranges \([tl, tm]\) and \([tm+1, tr]\)) then, midpoints are distinct and lie in \([0, n-2]\).</p>
-                    <p>We still map the midpoints in \([0, n-2]\) to odd indexes in \([0,2 \cdot n-2]\) with the <i>new</i> function \(f(midpoint) = 2 \cdot midpoint+1\). And for leaves, we map range \([tl, tl]\) to \(2 \cdot tl\). Our new function is:</p>
-                    <pre><code class="language-cpp">
+							   void update(int pos, int val, int tl=0, int tr=n) {
+							   if (tr - tl == 1) {
+							   t[in_order(tl,tr)] += val;
+							   } else {
+							   int tm = (tl+tr)/2;
+							   if (pos < tm)
+							   update(pos, val, tl, tm);
+							   else
+							   update(pos, val, tm, tr);
+							   t[in_order(tl,tr)] = t[in_order(tl,tm)] + t[in_order(tm,tr)];
+							   }
+							   }
+					</code></pre>
+				</details>
+				<hr>
+				<details>
+					<summary>How to further code golf this</summary>
+					<p>If we switch to inclusive-inclusive ranges (so node \(v\) has range \([tl, tr]\), which splits into ranges \([tl, tm]\) and \([tm+1, tr]\)) then, midpoints are distinct and lie in \([0, n-2]\).</p>
+					<p>We still map the midpoints in \([0, n-2]\) to odd indexes in \([0,2 \cdot n-2]\) with the <i>new</i> function \(f(midpoint) = 2 \cdot midpoint+1\). And for leaves, we map range \([tl, tl]\) to \(2 \cdot tl\). Our new function is:</p>
+					<pre><code class="language-cpp">
 int in_order(int tl, int tr) {
-    return tl != tr ? (tl+tr)/2*2+1 : 2*tl;
+	return tl != tr ? (tl+tr)/2*2+1 : 2*tl;
 }
-                    </code></pre>
-                    <ul>
-                        <li>Observe \(\lfloor\frac{x}{2}\rfloor \cdot 2+1\) is like setting the
-                            least significant bit of \(x\) to 1, so we
-                            can replace it with \(x|1\)</li>
-                        <li>For leaves, \(tl == tr\) so \(2 \cdot tl\) equals \(tl+tr\) which further equals \((tl+tr)|0\)</li>
-                    </ul>
-                    <pre><code class="language-cpp">
+					</code></pre>
+					<ul>
+						<li>Observe \(\lfloor\frac{x}{2}\rfloor \cdot 2+1\) is like setting the
+							least significant bit of \(x\) to 1, so we
+							can replace it with \(x|1\)</li>
+						<li>For leaves, \(tl == tr\) so \(2 \cdot tl\) equals \(tl+tr\) which further equals \((tl+tr)|0\)</li>
+					</ul>
+					<pre><code class="language-cpp">
 int in_order(int tl, int tr) {
-    return tl != tr ? ((tl+tr)|1) : ((tl+tr)|0);
+	return tl != tr ? ((tl+tr)|1) : ((tl+tr)|0);
 }
-                    </code></pre>
-                    <p>Finally, let's combine the cases:</p>
-                    <pre><code class="language-cpp">
+					</code></pre>
+					<p>Finally, let's combine the cases:</p>
+					<pre><code class="language-cpp">
 int in_order(int tl, int tr) {
-    return (tl+tr) | (tl!=tr);
+	return (tl+tr) | (tl!=tr);
 }
-                    </code></pre>
-                    <p>This is a way to derive <a href="https://codeforces.com/blog/entry/112755#comment-1004569">the comment</a>.</p>
-                </details>
-                <br>
-            </div>
-        </div>
-    </body>
+					</code></pre>
+					<p>This is a way to derive <a href="https://codeforces.com/blog/entry/112755#comment-1004569">the comment</a>.</p>
+				</details>
+				<br>
+			</div>
+		</div>
+	</body>
 </html>

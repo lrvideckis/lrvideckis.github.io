@@ -1,538 +1,538 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Minesweeper Probability</title>
-        <link rel="stylesheet" href="/style.css">
-        <script src="/mathjax/es5/tex-chtml.js" id="MathJax-script" async></script>
-    </head>
-    <body>
-        <script type="text/javascript" language="javascript" src="/navagation_bar.js"></script>
-        <div class="body">
-            <div class="heading">
-                <h1 class="main_title">Calculating Mine Probability in Minesweeper</h1>
-                <h2 class="blog_date">2020 July 17</h2>
-            </div>
-            <br>
-            <div class="main_content">
-                <h3>Background</h3>
-                <p>In minesweeper, to calculate the probability that given square is a mine was
-                <a href="https://www.semanticscholar.org/paper/The-complexity-of-Minesweeper-and-strategies-for-Pedersen/20833f71d74ff26ffd18979796cf1cbc8b3d92e6?p2df">proved to be #P-complete</a>.
-                I offer an exponential, heuristically improved approach to
-                finding such probabilities. Everything discussed in this blog
-                is already implemented in my
-                <a href="https://play.google.com/store/apps/details?id=com.LukeVideckis.minesweeper">android app</a>.</p>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Minesweeper Probability</title>
+		<link rel="stylesheet" href="/style.css">
+		<script src="/mathjax/es5/tex-chtml.js" id="MathJax-script" async></script>
+	</head>
+	<body>
+		<script type="text/javascript" language="javascript" src="/navagation_bar.js"></script>
+		<div class="body">
+			<div class="heading">
+				<h1 class="main_title">Calculating Mine Probability in Minesweeper</h1>
+				<h2 class="blog_date">2020 July 17</h2>
+			</div>
+			<br>
+			<div class="main_content">
+				<h3>Background</h3>
+				<p>In minesweeper, to calculate the probability that given square is a mine was
+				<a href="https://www.semanticscholar.org/paper/The-complexity-of-Minesweeper-and-strategies-for-Pedersen/20833f71d74ff26ffd18979796cf1cbc8b3d92e6?p2df">proved to be #P-complete</a>.
+				I offer an exponential, heuristically improved approach to
+				finding such probabilities. Everything discussed in this blog
+				is already implemented in my
+				<a href="https://play.google.com/store/apps/details?id=com.LukeVideckis.minesweeper">android app</a>.</p>
 
-                <h3>How Mine Probability is Defined</h3>
-                <p>Mine probability for a square X is defined as:</p>
-                \[\frac{\text{number of mine configurations where X is a mine}}{\text{total number of mine configurations}}\]
-                <p>as each mine configuration has an equal chance of occurring. Let's look at an example board with 20 mines:</p>
-                <img src="zoomed_out_board_cropped.png" alt="zoomed out board cropped" style="width:300px;height:auto;">
-                <p>The above board has 10 equally likely configurations of mines:</p>
-                <img src="config_1_cropped.png" alt="config 1 cropped" style="width:130px;height:auto;padding:2px;">
-                <img src="config_2_cropped.png" alt="config 2 cropped" style="width:130px;height:auto;padding:2px;">
-                <img src="config_3_cropped.png" alt="config 3 cropped" style="width:130px;height:auto;padding:2px;">
-                <img src="config_4_cropped.png" alt="config 4 cropped" style="width:130px;height:auto;padding:2px;">
-                <img src="config_5_cropped.png" alt="config 5 cropped" style="width:130px;height:auto;padding:2px;">
-                <img src="config_6_cropped.png" alt="config 6 cropped" style="width:130px;height:auto;padding:2px;">
-                <img src="config_7_cropped.png" alt="config 7 cropped" style="width:130px;height:auto;padding:2px;">
-                <img src="config_8_cropped.png" alt="config 8 cropped" style="width:130px;height:auto;padding:2px;">
-                <img src="config_9_cropped.png" alt="config 9 cropped" style="width:130px;height:auto;padding:2px;">
-                <img src="config_10_cropped.png" alt="config 10 cropped" style="width:130px;height:auto;padding:2px;">
-                <p>All the configurations have the following in common:</p>
-                <img src="config_with_solver_cropped.png" alt="config with solver cropped" style="width:130px;height:auto;padding:2px;">
-                <ul>
-                    <li>The red squares are the squares where every configuration has a mine</li>
-                    <li>The green square had no mine in any configuration</li>
-                </ul>
-                <p>In a sense, it is possible "to deduce" that the red squares
-                are mines, and the green square isn't a mine. For example, the
-                top 3 red squares on the first row are all mines since the
-                middle 3 has only 3 surrounding squares. Thus all three squares
-                must have a mine.</p>
-                <hr>
-                <p>Now what about calculating mine probabilities? For each
-                square, let's count up how many out of the above 10
-                configurations have a mine:</p>
-                <img src="config_with_mine_counts.png" alt="config with mine counts" style="width:150px;height:auto;padding:2px;">
-                <p>It seems like the top-left square has probability
-                \(\frac{4}{10}\) of being a mine since 4 out of 10
-                configurations have a mine there. As pointed out
-                <a href="https://luckytoilet.wordpress.com/2012/12/23/2125/#comment-14493">in this comment</a>,
-                this is incorrect; it turns out to be more
-                complicated. Let's zoom out to see the entire board again.</p>
-                <img src="zoomed_out_board_cropped_away_cells_highlighted.png" alt="zoomed out board cropped away cells highlighted" style="width:300px;height:auto;padding:2px;">
-                <p>There are 75 squares which weren't accounted for previously
-                (surrounded in red). Not all configurations of mines have the
-                same number of mines, and thus aren't weighted equally. For
-                example
-                <img src="config_10_cropped.png" alt="config_10_cropped" style="width:100px;height:auto;">
-                has 8 mines, while
-                <img src="config_1_cropped.png" alt="config_1_cropped" style="width:100px;height:auto;">
-                has 11 mines. Recall
-                there are 20 total mines. We have to choose where to place the
-                remaining mines among the 75 remaining squares. For example,
-                since
-                <img src="config_10_cropped.png" alt="config_10_cropped" style="width:100px;height:auto;">
-                has 8 mines, we need to
-                choose \(20 - 8\) squares out of the remaining 75 squares to
-                place the remaining mines. The number of ways to do this is
-                \(\binom{75}{20-8} = 26123889412400\). You can think of
-                \(\binom{75}{20-8}\) as
-                <img src="config_10_cropped.png" alt="config_10_cropped" style="width:100px;height:auto;">
-                's "weight". Then, the fraction of "weighted" sums will give the
-                correct mine probability for each square.</p>
-                <table>
-                    <tr>
-                        <th>Number of Mines</th>
-                        <th>Number of Configurations with top-left a mine</th>
-                        <th>Number of Configurations</th>
-                    </tr>
-                    <tr>
-                        <td>8</td>
-                        <td>0</td>
-                        <td>1</td>
-                    </tr>
-                    <tr>
-                        <td>9</td>
-                        <td>1</td>
-                        <td>4</td>
-                    </tr>
-                    <tr>
-                        <td>10</td>
-                        <td>2</td>
-                        <td>4</td>
-                    </tr>
-                    <tr>
-                        <td>11</td>
-                        <td>1</td>
-                        <td>1</td>
-                    </tr>
-                </table>
-                <p>For example, the top-left square has
-                <a href="https://www.wolframalpha.com/input/?i=%280*%2875+choose+20-8%29%2B1*%2875+choose+20-9%29%2B2*%2875+choose+20-10%29%2B1*%2875+choose+20-11%29%29%2F%281*%2875+choose+20-8%29%2B4*%2875+choose+20-9%29%2B4*%2875+choose+20-10%29%2B1*%2875+choose+20-11%29%29">probability</a>:
-                \[\frac{0\binom{75}{20-8} + 1\binom{75}{20-9} + 2\binom{75}{20-10} + 1\binom{75}{20-11}}{1\binom{75}{20-8} + 4\binom{75}{20-9} + 4\binom{75}{20-10} + 1\binom{75}{20-11}} = \frac{14}{103} \neq \frac{4}{10}\]
-                of being a mine.
-                </p>
-                <hr>
-                <p>Let's now define mine probability in general.</p>
-                <ul>
-                    <li>Let \(C\) denote the set of all mine configurations</li>
-                    <li>
-Define \(f \colon C \to \{true,false\}\) as follows:
-    \( f(c)=\begin{cases}
-          true & \text{c has a mine in square X} \\
-          false & \text{c has no mine in square X}
-       \end{cases}
-    \)
-                    </li>
-                    <li>Let \(Y\) denote the number of squares not next to any number, clue. (in the above example, \(Y=75\))</li>
-                    <li>Let \(M\) denote the total number of mines. (in the above example, \(M=20\))</li>
-                    <li>Define \(\#m \colon C \to \mathbb{Z}^+\) as follows: \(\#m\left(c\right) =\) the number of mines in configuration c. (in the above example, \(8 \leq \#m(c) \leq 11\))</li>
-                </ul>
-                <p>Then square X has a mine with probability:
-                \[\frac{\sum\limits_{c \in C \mid f(c)} \binom{Y}{M-\#m(c)}}{\sum\limits_{d \in C} \binom{Y}{M-\#m(d)}}.\]
-                </p>
-                <p>How about squares not next to any number (e.g. the \(Y = 75\) squares)? For these squares, mine probability is:
-                \[\frac{\sum\limits_{c \in C} \frac{M-\#m(c)}{Y}\binom{Y}{M-\#m(c)}}{\sum\limits_{d \in C} \binom{Y}{M-\#m(d)}}.\]
-                </p>
-                <p>For a given configuration c, \(\frac{M-\#m(c)}{Y}\) is the probability that any of the \(Y\) squares are a mine. And the final probability is a weighted average, where the weight is \(\binom{Y}{M-\#m(c)}\).</p>
-                <hr>
-                <p>Notice the numerator and denominator are <i>huge</i> (in magnitude). For the above example:
-                \[\text{numerator} = 0\binom{75}{20-8} + 1\binom{75}{20-9} + 2\binom{75}{20-10} + 1\binom{75}{20-11}\]
-                \[= 6,681,687,099,710\]
-                but the end result is relatively small (in magnitude): \(\frac{14}{103}\). The reason why most factors cancel is because
-                \[\frac{\sum\limits_{c \in C \mid f(c)} \binom{Y}{M-\#m(c)}}{\sum\limits_{d \in C} \binom{Y}{M-\#m(d)}}=
-                \sum\limits_{c \in C \mid f(c)} \frac{\binom{Y}{M-\#m(c)}}{\sum\limits_{d \in C} \binom{Y}{M-\#m(d)}}=
-                \sum\limits_{c \in C \mid f(c)} \frac{1}{\frac{\sum\limits_{d \in C} \binom{Y}{M-\#m(d)}}{\binom{Y}{M-\#m(c)}}}=\]\[
-                \sum\limits_{c \in C \mid f(c)} \frac{1}{\sum\limits_{d \in C} \frac{\binom{Y}{M-\#m(d)}}{\binom{Y}{M-\#m(c)}}},\]
-                and
-                \[\frac{\binom{Y}{M-\#m(d)}}{\binom{Y}{M-\#m(c)}}=\frac{\left(M-\#m(c)\right)!\left(Y-M+\#m(c)\right)!}{\left(M-\#m(d)\right)!\left(Y-M+\#m(d)\right)!}.\]
-                Notice \(\left|\#m(c)-\#m(d)\right|\) is small, \(\leq 3\) in most cases, thus most factors in
-                \(\frac{\left(M-\#m(c)\right)!}{\left(M-\#m(d)\right)!}\), and \(\frac{\left(Y-M+\#m(c)\right)!}{\left(Y-M+\#m(d)\right)!}\) cancel.
-                </p>
-                <p>We can employ one of the following formulas (or their reciprocals):</p>
-                <ul>
-                    <li>\(\frac{\binom{n}{k}}{\binom{n}{k}}=1\)</li>
-                    <li>\(\frac{\binom{n}{k}}{\binom{n}{k+1}}=\frac{k+1}{n-k}\)</li>
-                    <li>\(\frac{\binom{n}{k}}{\binom{n}{k+2}}=\frac{\left(k+1\right)\left(k+2\right)}{\left(n-k\right)\left(n-k-1\right)}\)</li>
-                    <li>\(\frac{\binom{n}{k}}{\binom{n}{k+m}}= \frac{(k+1)(k+2)\dots(k+m)}{(n-k)(n-k-1)\dots(n-k-(m-1))}\)</li>
-                </ul>
-                <h3>Implementing Mine Probability</h3>
-                <p>In order to calculate the probability that square X is a mine, we need to calculate 2 things:</p>
-                <ul>
-                    <li>For each square X, the number of mine configurations which have \(m\) mines where X is a mine, (\(0 \leq m \leq M\))</li>
-                    <li>number of total mine configurations with \(m\) mines, (\(0 \leq m \leq M\))</li>
-                </ul>
-                <p>To calculate these, we employ backtracking:</p>
-                <img src="backtracking_pseudo_code.png" alt="backtracking pseudo code" style="width:540px;height:auto;">
-                <p>Even with pruning, this algorithm runs in \(\mathcal{O}\left(\left|squares\right| \cdot 2^{\left|squares\right|}\right)\). The \(\left|squares\right|\) factor comes from handling the base case, and there are at most \(2^{\left|squares\right|}\) base cases (mine configurations). The next section will discuss ways to make \(\left|squares\right|\) smaller.</p>
+				<h3>How Mine Probability is Defined</h3>
+				<p>Mine probability for a square X is defined as:</p>
+				\[\frac{\text{number of mine configurations where X is a mine}}{\text{total number of mine configurations}}\]
+				<p>as each mine configuration has an equal chance of occurring. Let's look at an example board with 20 mines:</p>
+				<img src="zoomed_out_board_cropped.png" alt="zoomed out board cropped" style="width:300px;height:auto;">
+				<p>The above board has 10 equally likely configurations of mines:</p>
+				<img src="config_1_cropped.png" alt="config 1 cropped" style="width:130px;height:auto;padding:2px;">
+				<img src="config_2_cropped.png" alt="config 2 cropped" style="width:130px;height:auto;padding:2px;">
+				<img src="config_3_cropped.png" alt="config 3 cropped" style="width:130px;height:auto;padding:2px;">
+				<img src="config_4_cropped.png" alt="config 4 cropped" style="width:130px;height:auto;padding:2px;">
+				<img src="config_5_cropped.png" alt="config 5 cropped" style="width:130px;height:auto;padding:2px;">
+				<img src="config_6_cropped.png" alt="config 6 cropped" style="width:130px;height:auto;padding:2px;">
+				<img src="config_7_cropped.png" alt="config 7 cropped" style="width:130px;height:auto;padding:2px;">
+				<img src="config_8_cropped.png" alt="config 8 cropped" style="width:130px;height:auto;padding:2px;">
+				<img src="config_9_cropped.png" alt="config 9 cropped" style="width:130px;height:auto;padding:2px;">
+				<img src="config_10_cropped.png" alt="config 10 cropped" style="width:130px;height:auto;padding:2px;">
+				<p>All the configurations have the following in common:</p>
+				<img src="config_with_solver_cropped.png" alt="config with solver cropped" style="width:130px;height:auto;padding:2px;">
+				<ul>
+					<li>The red squares are the squares where every configuration has a mine</li>
+					<li>The green square had no mine in any configuration</li>
+				</ul>
+				<p>In a sense, it is possible "to deduce" that the red squares
+				are mines, and the green square isn't a mine. For example, the
+				top 3 red squares on the first row are all mines since the
+				middle 3 has only 3 surrounding squares. Thus all three squares
+				must have a mine.</p>
+				<hr>
+				<p>Now what about calculating mine probabilities? For each
+				square, let's count up how many out of the above 10
+				configurations have a mine:</p>
+				<img src="config_with_mine_counts.png" alt="config with mine counts" style="width:150px;height:auto;padding:2px;">
+				<p>It seems like the top-left square has probability
+				\(\frac{4}{10}\) of being a mine since 4 out of 10
+				configurations have a mine there. As pointed out
+				<a href="https://luckytoilet.wordpress.com/2012/12/23/2125/#comment-14493">in this comment</a>,
+				this is incorrect; it turns out to be more
+				complicated. Let's zoom out to see the entire board again.</p>
+				<img src="zoomed_out_board_cropped_away_cells_highlighted.png" alt="zoomed out board cropped away cells highlighted" style="width:300px;height:auto;padding:2px;">
+				<p>There are 75 squares which weren't accounted for previously
+				(surrounded in red). Not all configurations of mines have the
+				same number of mines, and thus aren't weighted equally. For
+				example
+				<img src="config_10_cropped.png" alt="config_10_cropped" style="width:100px;height:auto;">
+				has 8 mines, while
+				<img src="config_1_cropped.png" alt="config_1_cropped" style="width:100px;height:auto;">
+				has 11 mines. Recall
+				there are 20 total mines. We have to choose where to place the
+				remaining mines among the 75 remaining squares. For example,
+				since
+				<img src="config_10_cropped.png" alt="config_10_cropped" style="width:100px;height:auto;">
+				has 8 mines, we need to
+				choose \(20 - 8\) squares out of the remaining 75 squares to
+				place the remaining mines. The number of ways to do this is
+				\(\binom{75}{20-8} = 26123889412400\). You can think of
+				\(\binom{75}{20-8}\) as
+				<img src="config_10_cropped.png" alt="config_10_cropped" style="width:100px;height:auto;">
+				's "weight". Then, the fraction of "weighted" sums will give the
+				correct mine probability for each square.</p>
+				<table>
+					<tr>
+						<th>Number of Mines</th>
+						<th>Number of Configurations with top-left a mine</th>
+						<th>Number of Configurations</th>
+					</tr>
+					<tr>
+						<td>8</td>
+						<td>0</td>
+						<td>1</td>
+					</tr>
+					<tr>
+						<td>9</td>
+						<td>1</td>
+						<td>4</td>
+					</tr>
+					<tr>
+						<td>10</td>
+						<td>2</td>
+						<td>4</td>
+					</tr>
+					<tr>
+						<td>11</td>
+						<td>1</td>
+						<td>1</td>
+					</tr>
+				</table>
+				<p>For example, the top-left square has
+				<a href="https://www.wolframalpha.com/input/?i=%280*%2875+choose+20-8%29%2B1*%2875+choose+20-9%29%2B2*%2875+choose+20-10%29%2B1*%2875+choose+20-11%29%29%2F%281*%2875+choose+20-8%29%2B4*%2875+choose+20-9%29%2B4*%2875+choose+20-10%29%2B1*%2875+choose+20-11%29%29">probability</a>:
+				\[\frac{0\binom{75}{20-8} + 1\binom{75}{20-9} + 2\binom{75}{20-10} + 1\binom{75}{20-11}}{1\binom{75}{20-8} + 4\binom{75}{20-9} + 4\binom{75}{20-10} + 1\binom{75}{20-11}} = \frac{14}{103} \neq \frac{4}{10}\]
+				of being a mine.
+				</p>
+				<hr>
+				<p>Let's now define mine probability in general.</p>
+				<ul>
+					<li>Let \(C\) denote the set of all mine configurations</li>
+					<li>
+						Define \(f \colon C \to \{true,false\}\) as follows:
+						\( f(c)=\begin{cases}
+						true & \text{c has a mine in square X} \\
+						false & \text{c has no mine in square X}
+						\end{cases}
+						\)
+					</li>
+					<li>Let \(Y\) denote the number of squares not next to any number, clue. (in the above example, \(Y=75\))</li>
+					<li>Let \(M\) denote the total number of mines. (in the above example, \(M=20\))</li>
+					<li>Define \(\#m \colon C \to \mathbb{Z}^+\) as follows: \(\#m\left(c\right) =\) the number of mines in configuration c. (in the above example, \(8 \leq \#m(c) \leq 11\))</li>
+				</ul>
+				<p>Then square X has a mine with probability:
+				\[\frac{\sum\limits_{c \in C \mid f(c)} \binom{Y}{M-\#m(c)}}{\sum\limits_{d \in C} \binom{Y}{M-\#m(d)}}.\]
+				</p>
+				<p>How about squares not next to any number (e.g. the \(Y = 75\) squares)? For these squares, mine probability is:
+				\[\frac{\sum\limits_{c \in C} \frac{M-\#m(c)}{Y}\binom{Y}{M-\#m(c)}}{\sum\limits_{d \in C} \binom{Y}{M-\#m(d)}}.\]
+				</p>
+				<p>For a given configuration c, \(\frac{M-\#m(c)}{Y}\) is the probability that any of the \(Y\) squares are a mine. And the final probability is a weighted average, where the weight is \(\binom{Y}{M-\#m(c)}\).</p>
+				<hr>
+				<p>Notice the numerator and denominator are <i>huge</i> (in magnitude). For the above example:
+				\[\text{numerator} = 0\binom{75}{20-8} + 1\binom{75}{20-9} + 2\binom{75}{20-10} + 1\binom{75}{20-11}\]
+				\[= 6,681,687,099,710\]
+				but the end result is relatively small (in magnitude): \(\frac{14}{103}\). The reason why most factors cancel is because
+				\[\frac{\sum\limits_{c \in C \mid f(c)} \binom{Y}{M-\#m(c)}}{\sum\limits_{d \in C} \binom{Y}{M-\#m(d)}}=
+				\sum\limits_{c \in C \mid f(c)} \frac{\binom{Y}{M-\#m(c)}}{\sum\limits_{d \in C} \binom{Y}{M-\#m(d)}}=
+				\sum\limits_{c \in C \mid f(c)} \frac{1}{\frac{\sum\limits_{d \in C} \binom{Y}{M-\#m(d)}}{\binom{Y}{M-\#m(c)}}}=\]\[
+				\sum\limits_{c \in C \mid f(c)} \frac{1}{\sum\limits_{d \in C} \frac{\binom{Y}{M-\#m(d)}}{\binom{Y}{M-\#m(c)}}},\]
+				and
+				\[\frac{\binom{Y}{M-\#m(d)}}{\binom{Y}{M-\#m(c)}}=\frac{\left(M-\#m(c)\right)!\left(Y-M+\#m(c)\right)!}{\left(M-\#m(d)\right)!\left(Y-M+\#m(d)\right)!}.\]
+				Notice \(\left|\#m(c)-\#m(d)\right|\) is small, \(\leq 3\) in most cases, thus most factors in
+				\(\frac{\left(M-\#m(c)\right)!}{\left(M-\#m(d)\right)!}\), and \(\frac{\left(Y-M+\#m(c)\right)!}{\left(Y-M+\#m(d)\right)!}\) cancel.
+				</p>
+				<p>We can employ one of the following formulas (or their reciprocals):</p>
+				<ul>
+					<li>\(\frac{\binom{n}{k}}{\binom{n}{k}}=1\)</li>
+					<li>\(\frac{\binom{n}{k}}{\binom{n}{k+1}}=\frac{k+1}{n-k}\)</li>
+					<li>\(\frac{\binom{n}{k}}{\binom{n}{k+2}}=\frac{\left(k+1\right)\left(k+2\right)}{\left(n-k\right)\left(n-k-1\right)}\)</li>
+					<li>\(\frac{\binom{n}{k}}{\binom{n}{k+m}}= \frac{(k+1)(k+2)\dots(k+m)}{(n-k)(n-k-1)\dots(n-k-(m-1))}\)</li>
+				</ul>
+				<h3>Implementing Mine Probability</h3>
+				<p>In order to calculate the probability that square X is a mine, we need to calculate 2 things:</p>
+				<ul>
+					<li>For each square X, the number of mine configurations which have \(m\) mines where X is a mine, (\(0 \leq m \leq M\))</li>
+					<li>number of total mine configurations with \(m\) mines, (\(0 \leq m \leq M\))</li>
+				</ul>
+				<p>To calculate these, we employ backtracking:</p>
+				<img src="backtracking_pseudo_code.png" alt="backtracking pseudo code" style="width:540px;height:auto;">
+				<p>Even with pruning, this algorithm runs in \(\mathcal{O}\left(\left|squares\right| \cdot 2^{\left|squares\right|}\right)\). The \(\left|squares\right|\) factor comes from handling the base case, and there are at most \(2^{\left|squares\right|}\) base cases (mine configurations). The next section will discuss ways to make \(\left|squares\right|\) smaller.</p>
 
-                <h3>Splitting by Components</h3>
-                <p>The first optimization, splitting by components, is discussed in other blogs for example
-                <a href="https://luckytoilet.wordpress.com/2012/12/23/2125/">this blog</a>. Consider the following board:</p>
-                <img src="board_multiple_components_marked.png" alt="board multiple components marked" style="width:300px;height:auto;">
-                <p>
-                Running the backtracking will take roughly \(\left(3+4+11\right)\cdot2^{3+4+11}=4,718,592\) steps. Instead, how about running the backtracking independently on the red, blue, and green components. This will take roughly \(3\cdot2^3+4\cdot2^4+11\cdot2^{11}=22,616\) steps (much smaller).
-                </p>
-                <p>
-                But splitting the backtracking into multiple components makes things difficult. Let's look at another example (there are still 20 total mines):
-                </p>
-                <img src="two_components.png" alt="two components" style="width:300px;height:auto;">
-                <p>
-                Both components are the same as earlier, and both can have
-                either 8, 9, 10, or 11 mines. But since there are 20 total
-                mines, if one component has 11 mines, then the other component
-                can only have 8 or 9 mines. In general, the total number of
-                mines has to be in the range \([M-Y,M]\), with \(M,Y\) defined
-                earlier. This leads to the following problem.
-                </p>
-                <hr>
-                <p>
-                You are given \(n\), the number of components (labeled 1, 2, ..., n), and an array \(\#configs[][]\), where
-                </p>
-                <p>
-                \(\#configs[i][j]\) = number of configurations of mines for the \(i\)-th component which have \(j\) mines, \((1 \leq i \leq n,\;0 \leq j \leq M)\).
-                </p>
-                <p>
-                Find \(\#totalConfigs[]\) defined as:
-                </p>
-                <p>
-                \(\#totalConfigs[i]\) = number of configurations of mines which
-                have \(i\) mines when including all components, \((0 \leq i \leq M)\).
-                </p>
-                <p>
-                This problem is similar to
-                <a href="https://en.wikipedia.org/wiki/Knapsack_problem#0-1_knapsack_problem">0-1 knapsack</a>.
-                It's solved by dynamic programming. Let
-                </p>
-                <p>
-                \(dp[i][j]\) = number of configurations including only components \(1, 2, ..., i\) which have \(j\) mines, \((1 \leq i \leq n,\;0 \leq j \leq M)\).
-                </p>
-                <p>
-                Then the array dp is calculated as:
-                \[dp[i][j] = \sum\limits_{k=0}^j dp[i-1][k] \cdot \#configs[i][j-k].\]
-                The answer, \(\#totalConfigs\), is stored in \(dp[n]\).
-                </p>
-                <hr>
-                <p>
-                This works great for calculating mine probability for squares not next to any number,
-                \[\frac{\sum\limits_{c \in C} \frac{M-\#m(c)}{Y}\binom{Y}{M-\#m(c)}}{\sum\limits_{d \in C} \binom{Y}{M-\#m(d)}},\]
-                because we just need to know the number of components, and the number of mines for each component. We have
-                \[\sum\limits_{c \in C} \frac{M-\#m(c)}{Y}\binom{Y}{M-\#m(c)} =\]
-                \[\sum\limits_{i=0}^M \frac{M-i}{Y} \cdot \#totalConfigs[i] \cdot \binom{Y}{M-i},\]
-                and a similar formula for the denominator. Here, \(i\) represents the number of mines.
-                </p>
-                <p>
-                But calculating \(\#totalConfigs[]\) isn't enough to determine mine probability for a square X next to a number,
-                \[\frac{\sum\limits_{c \in C \mid f(c)} \binom{Y}{M-\#m(c)}}{\sum\limits_{d \in C} \binom{Y}{M-\#m(d)}},\]
-                because the numerator requires us to calculate the number of configurations <i>where square X is a mine</i>. To do this, we define a new problem.
-                </p>
-                <p>
-                Again you are given \(n\), the number of components (labeled 1, 2, ..., n), and an array \(\#configs[][]\), where
-                </p>
-                <p>
-                \(\#configs[i][j]\) = number of configurations of mines for the \(i\)-th component which have \(j\) mines, \((1 \leq i \leq n,\;0 \leq j \leq M)\).
-                </p>
-                <p>
-                This time, find an array \(dp[][][]\) defined as:
-                </p>
-                <p>
-                \(dp[i][j][k]\) = total number of mine configurations which have \(k\) mines, considering all components \((1, 2, ..., n)\) with the restriction that component \(i\) has exactly 1 configuration which has \(j\) mines, \((1 \leq i \leq n,\;0 \leq j \leq M,\;0 \leq k \leq M)\).
-                </p>
-                <p>
-                To solve, we first calculate 2 arrays:
-                </p>
-                <ul>
-                    <li>
-                        \(prefix[i][j]\) = number of configurations considering components \(1, 2, ..., i\) which have \(j\) mines, \((1 \leq i \leq n,\;0 \leq j \leq M)\).
-                        <ul>
-                            <li>calculated as: \(prefix[i][j] = \sum\limits_{k=0}^j prefix[i-1][k] \cdot \#configs[i][j-k]\)</li>
-                        </ul>
-                    </li>
-                    <li>\(suffix[i][j]\) = number of configurations considering components \(i, i+1, ..., n\) which have \(j\) mines, \((1 \leq i \leq n,\;0 \leq j \leq M)\).
-                        <ul>
-                            <li>calculated as: \(suffix[i][j] = \sum\limits_{k=0}^j suffix[i+1][k] \cdot \#configs[i][j-k]\)</li>
-                        </ul>
-                    </li>
-                </ul>
-                <p>
-                Finally, \(dp[][][]\) is calculated as:
-                \[dp[i][j][k] = \sum\limits_{l=0}^{k-j} prefix[i-1][l] \cdot suffix[i+1][k-j-l].\]
-                How can we use \(dp[][][]\) to calculate \(\frac{\sum\limits_{c \in C \mid f(c)} \binom{Y}{M-\#m(c)}}{\sum\limits_{d \in C} \binom{Y}{M-\#m(d)}}?\)
-                </p>
-                <p>
-                Consider a square X next to at least one number. Assume X is in component \(i\). When we run backtracking on component \(i\), the base case is hit once for every mine configuration. So we can calculate an array: \(countXIsMine[]\) defined as
-                </p>
-                <p>
-                \(countXIsMine[j]\) = number of mine configurations for component \(i\) with \(j\) mines where X is a mine, \((0 \leq j \leq M)\).
-                </p>
-                <p>
-                We have
-                \[\sum\limits_{c \in C \mid f(c)} \binom{Y}{M-\#m(c)}=\]
-                \[\sum\limits_{k=0}^M \sum\limits_{j=0}^k dp[i][j][k] \cdot countXIsMine[j] \cdot \binom{Y}{M-k}.\]
-                Here, \(\sum\limits_{j=0}^k dp[i][j][k] \cdot countXIsMine[j]\) is the number of mine configurations (considering all components) which have \(k\) mines and X is a mine. Recall that when calculating \(dp[i][j][k]\), we assumed component \(i\) has exactly 1 mine configuration which has \(j\) mines. After multiplying with \(countXIsMine[j]\), component \(i\) now has \(countXIsMine[j]\) configurations with \(j\) mines (and X is a mine).
-                </p>
+				<h3>Splitting by Components</h3>
+				<p>The first optimization, splitting by components, is discussed in other blogs for example
+				<a href="https://luckytoilet.wordpress.com/2012/12/23/2125/">this blog</a>. Consider the following board:</p>
+				<img src="board_multiple_components_marked.png" alt="board multiple components marked" style="width:300px;height:auto;">
+				<p>
+				Running the backtracking will take roughly \(\left(3+4+11\right)\cdot2^{3+4+11}=4,718,592\) steps. Instead, how about running the backtracking independently on the red, blue, and green components. This will take roughly \(3\cdot2^3+4\cdot2^4+11\cdot2^{11}=22,616\) steps (much smaller).
+				</p>
+				<p>
+				But splitting the backtracking into multiple components makes things difficult. Let's look at another example (there are still 20 total mines):
+				</p>
+				<img src="two_components.png" alt="two components" style="width:300px;height:auto;">
+				<p>
+				Both components are the same as earlier, and both can have
+				either 8, 9, 10, or 11 mines. But since there are 20 total
+				mines, if one component has 11 mines, then the other component
+				can only have 8 or 9 mines. In general, the total number of
+				mines has to be in the range \([M-Y,M]\), with \(M,Y\) defined
+				earlier. This leads to the following problem.
+				</p>
+				<hr>
+				<p>
+				You are given \(n\), the number of components (labeled 1, 2, ..., n), and an array \(\#configs[][]\), where
+				</p>
+				<p>
+				\(\#configs[i][j]\) = number of configurations of mines for the \(i\)-th component which have \(j\) mines, \((1 \leq i \leq n,\;0 \leq j \leq M)\).
+				</p>
+				<p>
+				Find \(\#totalConfigs[]\) defined as:
+				</p>
+				<p>
+				\(\#totalConfigs[i]\) = number of configurations of mines which
+				have \(i\) mines when including all components, \((0 \leq i \leq M)\).
+				</p>
+				<p>
+				This problem is similar to
+				<a href="https://en.wikipedia.org/wiki/Knapsack_problem#0-1_knapsack_problem">0-1 knapsack</a>.
+				It's solved by dynamic programming. Let
+				</p>
+				<p>
+				\(dp[i][j]\) = number of configurations including only components \(1, 2, ..., i\) which have \(j\) mines, \((1 \leq i \leq n,\;0 \leq j \leq M)\).
+				</p>
+				<p>
+				Then the array dp is calculated as:
+				\[dp[i][j] = \sum\limits_{k=0}^j dp[i-1][k] \cdot \#configs[i][j-k].\]
+				The answer, \(\#totalConfigs\), is stored in \(dp[n]\).
+				</p>
+				<hr>
+				<p>
+				This works great for calculating mine probability for squares not next to any number,
+				\[\frac{\sum\limits_{c \in C} \frac{M-\#m(c)}{Y}\binom{Y}{M-\#m(c)}}{\sum\limits_{d \in C} \binom{Y}{M-\#m(d)}},\]
+				because we just need to know the number of components, and the number of mines for each component. We have
+				\[\sum\limits_{c \in C} \frac{M-\#m(c)}{Y}\binom{Y}{M-\#m(c)} =\]
+				\[\sum\limits_{i=0}^M \frac{M-i}{Y} \cdot \#totalConfigs[i] \cdot \binom{Y}{M-i},\]
+				and a similar formula for the denominator. Here, \(i\) represents the number of mines.
+				</p>
+				<p>
+				But calculating \(\#totalConfigs[]\) isn't enough to determine mine probability for a square X next to a number,
+				\[\frac{\sum\limits_{c \in C \mid f(c)} \binom{Y}{M-\#m(c)}}{\sum\limits_{d \in C} \binom{Y}{M-\#m(d)}},\]
+				because the numerator requires us to calculate the number of configurations <i>where square X is a mine</i>. To do this, we define a new problem.
+				</p>
+				<p>
+				Again you are given \(n\), the number of components (labeled 1, 2, ..., n), and an array \(\#configs[][]\), where
+				</p>
+				<p>
+				\(\#configs[i][j]\) = number of configurations of mines for the \(i\)-th component which have \(j\) mines, \((1 \leq i \leq n,\;0 \leq j \leq M)\).
+				</p>
+				<p>
+				This time, find an array \(dp[][][]\) defined as:
+				</p>
+				<p>
+				\(dp[i][j][k]\) = total number of mine configurations which have \(k\) mines, considering all components \((1, 2, ..., n)\) with the restriction that component \(i\) has exactly 1 configuration which has \(j\) mines, \((1 \leq i \leq n,\;0 \leq j \leq M,\;0 \leq k \leq M)\).
+				</p>
+				<p>
+				To solve, we first calculate 2 arrays:
+				</p>
+				<ul>
+					<li>
+						\(prefix[i][j]\) = number of configurations considering components \(1, 2, ..., i\) which have \(j\) mines, \((1 \leq i \leq n,\;0 \leq j \leq M)\).
+						<ul>
+							<li>calculated as: \(prefix[i][j] = \sum\limits_{k=0}^j prefix[i-1][k] \cdot \#configs[i][j-k]\)</li>
+						</ul>
+					</li>
+					<li>\(suffix[i][j]\) = number of configurations considering components \(i, i+1, ..., n\) which have \(j\) mines, \((1 \leq i \leq n,\;0 \leq j \leq M)\).
+						<ul>
+							<li>calculated as: \(suffix[i][j] = \sum\limits_{k=0}^j suffix[i+1][k] \cdot \#configs[i][j-k]\)</li>
+						</ul>
+					</li>
+				</ul>
+				<p>
+				Finally, \(dp[][][]\) is calculated as:
+				\[dp[i][j][k] = \sum\limits_{l=0}^{k-j} prefix[i-1][l] \cdot suffix[i+1][k-j-l].\]
+				How can we use \(dp[][][]\) to calculate \(\frac{\sum\limits_{c \in C \mid f(c)} \binom{Y}{M-\#m(c)}}{\sum\limits_{d \in C} \binom{Y}{M-\#m(d)}}?\)
+				</p>
+				<p>
+				Consider a square X next to at least one number. Assume X is in component \(i\). When we run backtracking on component \(i\), the base case is hit once for every mine configuration. So we can calculate an array: \(countXIsMine[]\) defined as
+				</p>
+				<p>
+				\(countXIsMine[j]\) = number of mine configurations for component \(i\) with \(j\) mines where X is a mine, \((0 \leq j \leq M)\).
+				</p>
+				<p>
+				We have
+				\[\sum\limits_{c \in C \mid f(c)} \binom{Y}{M-\#m(c)}=\]
+				\[\sum\limits_{k=0}^M \sum\limits_{j=0}^k dp[i][j][k] \cdot countXIsMine[j] \cdot \binom{Y}{M-k}.\]
+				Here, \(\sum\limits_{j=0}^k dp[i][j][k] \cdot countXIsMine[j]\) is the number of mine configurations (considering all components) which have \(k\) mines and X is a mine. Recall that when calculating \(dp[i][j][k]\), we assumed component \(i\) has exactly 1 mine configuration which has \(j\) mines. After multiplying with \(countXIsMine[j]\), component \(i\) now has \(countXIsMine[j]\) configurations with \(j\) mines (and X is a mine).
+				</p>
 
-                <h3>Matrices and Local Deductions</h3>
-                <p>
-                Minesweeper can be reduced to
-                <a href="https://massaioli.wordpress.com/2013/01/12/solving-minesweeper-with-matricies/">solving a system of linear equations</a>.
-                Combining this with
-                <a href="https://stackoverflow.com/a/4356982">local deductions</a>
-                is a good approach to determining whether certain moves are
-                save. What if we ran these 2 approaches first, before splitting
-                the board by components? Any deducible squares which these 2
-                approaches give can be used to split components, reducing their
-                size.
-                </p>
-                <img src="backtracking_local_deductions_pseudo_code.png" alt="backtracking local deductions pseudo code" style="width:540px;height:auto;">
-                <p>An example:</p>
-                <img src="before_local.png" alt="before local" style="width:270px;height:auto;">
-                <img src="after_local.png" alt="after local" style="width:270px;height:auto;">
-                <p>
-                The [green/red] squares are the squares where running local
-                deductions determined they [didn't/did] have mines. Notice
-                local deductions have failed to find all possible deducible
-                squares (there's a 2-1 pattern on the top row).
-                </p>
-                <p>
-                Before running local deductions, there is 1 component with 28
-                squares. The backtracking would have taken \(\sim 28\cdot2^{28} = 7,516,192,768\)
-                operations. After running local deductions, there's 1 component
-                with 9 non-deduced squares
-                (\(9\cdot2^9 = 4,608\)).
-                </p>
-                <p>
-                Although this optimization seems like it would help a lot,
-                there are many cases where this optimization doesn't help out
-                much (for example, consider if there are no deducible squares).
-                </p>
-                <h4>Further Splitting of Components</h4>
-                <p>
-                Let's define the problem: You are given a <i>single</i>
-                component of \(n\) squares (labeled 1, 2, ..., n). Find:
-                </p>
-                <ul>
-                    <li>\(\#configs[]\) defined as:  \(\#configs[i]\) = the number of mine configurations with \(i\) mines, (\(0 \leq i \leq M\))</li>
-                    <li>\(\#configsWithJMine[][]\) defined as: \(\#configsWithJMine[i][j]\) = the number of mine configurations which have \(i\) mines, and square \(j\) is a mine, (\(0 \leq i \leq M, 1 \leq j \leq n\))</li>
-                </ul>
-                <p>
-                This of course can be solved with recursive backtracking in
-                \(\mathcal{O}(n\cdot2^n)\). Let's try to solve this problem
-                faster as it is usually the bottleneck of the entire mine
-                probability calculation (every other step runs in polynomial
-                time).
-                </p>
-                <p>
-                Consider the following board.
-                </p>
-                <img src="board_before_splitting_by_cut_nodes.png" alt="board before splitting by cut nodes" style="width:170px;height:auto;">
-                <p>
-                Imagine if we somehow "removed" the un-discovered square next to the 1.
-                </p>
-                <img src="board_middle_of_splitting_by_cut_nodes.png" alt="board middle of splitting by cut nodes" style="width:170px;height:auto;">
-                <p>
-                Then, the board would contain 2 components.
-                </p>
-                <img src="board_after_splitting_by_cut_nodes.png" alt="board after splitting by cut nodes" style="width:170px;height:auto;">
-                <p>
-                Now, what if we ran the backtracking <i>independently</i> on
-                both the blue and yellow components, and then somehow combined
-                the results? In this way, we can take a single component, and
-                split it further into \(\geq 2\) smaller components.
-                </p>
-                <p>
-                But why limit ourselves to splitting a single component once?
-                Notice, we have to solve the exact same problem for both the
-                blue and yellow components. Thus, why solve it with
-                backtracking, when we can again use the same trick of
-                "removing" squares? This leads to the following recursive
-                algorithm.
-                </p>
-                <img src="solve_component_recursively_pseudo_code.png" alt="solve component recursively pseudo code" style="width:540px;height:auto;">
-                <p>
-                Here, the "split" squares are the squares which we remove to
-                split up the original component. Before diving into the reasons
-                why this algorithm is still exponential, I'll explain the
-                following parts:
-                </p>
-                <ul>
-                    <li>the \(findSplitSquares\) function</li>
-                    <li>combining results</li>
-                </ul>
-                <h4>Finding Split Squares</h4>
-                <p>
-                First, we don't have to limit ourselves to removing just 1
-                square to split components. Although, assuming we remove \(k\)
-                squares, it turns out the combine step will take
-                \(\mathcal{O}(2^k)\) time. So in my implementation, I
-                arbitrarily chose 6 as an upper bound on the number of split
-                squares.
-                </p>
-                <p>
-                Finding split squares requires representing the minesweeper board as a graph:
-                </p>
-                <ul>
-                    <li>squares are nodes</li>
-                    <li>2 squares share an edge if there exists a number next to both squares</li>
-                </ul>
-                <p>
-                For example this board,
-                <img src="board_as_graph_2.png" alt="board as graph 2" style="width:170px;height:auto;">,
-                produces the following graph:
-                </p>
-                <img src="Drawing.png" alt="Drawing" style="width:300px;height:auto;">
-                <p>
-                Notice that if node 4 is removed, then the graph would split
-                into 2 connected components. Thus node 4 is an
-                <a href="https://cp-algorithms.com/graph/cutpoints.html">articulation node</a>.
-                The first attempt would be to choose \(\leq\) 6 articulation nodes
-                from the graph to remove. Although this approach would
-                fail on grids such as:
-                <img src="board_with_no_cut_nodes.png" alt="board with no cut nodes" style="width:160px;height:auto;">
-                whose graphs have no articulation nodes. So let's find a more
-                generalized solution.
-                </p>
-                <p>
-                Ideally, we would want to remove \(\leq\) 6 nodes such that the
-                size of the largest component is minimized. Unfortunately, the
-                generalized problem of finding k nodes to remove to minimize
-                the size of the largest remaining component
-                <a href="https://cs.stackexchange.com/q/12789">is NP-complete</a>.
-                But this isn't as relevant as you'd think. There are at least 2
-                options:
-                </p>
-                <ul>
-                    <li>
-                        employ an approximation algorithm such as
-                        <a href="https://supernet.isenberg.umass.edu/hlogistics/slides/Pardalos-Bellago-Nagurney.pdf#page=38">the 2-exchange method</a>
-                    </li>
-                    <li>
-                        employ a brute force approach similar to
-                        <a href="https://cs.stackexchange.com/questions/12789/find-which-vertices-to-delete-from-graph-to-get-smallest-largest-component#comment27752_12809">this comment</a>.
-                        Brute force here is okay since we're only removing
-                        \(\leq\) 6 nodes (thus is exponential in 6).
-                    </li>
-                </ul>
-                <h4>Combining Results</h4>
-                <p>
-                Recall the problem: you are given a <i>single</i> component of \(n\) squares (labeled 1, 2, ..., n). Find:
-                </p>
-                <ul>
-                    <li>\(\#configs[]\) defined as:  \(\#configs[i]\) = the number of mine configurations with \(i\) mines, (\(0 \leq i \leq M\))</li>
-                    <li>\(\#configsWithJMine[][]\) defined as: \(\#configsWithJMine[i][j]\) = the number of mine configurations which have \(i\) mines, and square \(j\) is a mine, (\(0 \leq i \leq M, 1 \leq j \leq n\))</li>
-                </ul>
-                <p>
-                I'll only explain how to calculate \(\#configs[]\) as
-                \(\#configsWithJMine[][]\) is calculated very similarly.
-                </p>
-                <hr>
-                <p>
-                To understand this section, it'll help to know about
-                <a href="https://codeforces.com/blog/entry/337">dynamic programming with bitmasks</a>.
-                Consider this example board again:</p>
-                <img src="board_after_splitting_by_cut_nodes.png" alt="board after splitting by cut nodes" style="width:170px;height:auto;">
-                <p>
-                Our goal is to calculate some sub-result (not necessarily
-                \(\#configs[]\)) for both the blue and yellow components, and
-                then calculate the same sub-result for the original component.
-                Also, we have to be able to calculate \(\#configs[]\) from this
-                sub-result.
-                </p>
-                <p>
-                The sub-result is an array \(dp[][]\) defined as:
-                \(dp[mask][i]\) = the number of mine configurations with \(i\)
-                mines under the restriction that if and only if the \(j\)-th
-                bit in \(mask\) is 1, then there is a mine in the \(j\)-th
-                removed square.
-                </p>
-                <p>
-                Since the above example has only 1 removed square we consider 2 cases:
-                </p>
-                <ul>
-                    <li>the removed square is a mine \(\left(mask = 1\right)\)</li>
-                    <li>the removed square is not a mine \(\left(mask = 0\right)\)</li>
-                </ul>
-                <p>
-                If the removed square is a mine, we have
-                \[dpOriginal[1][i] = \sum \limits_{j=0}^{i+1} dpBlue[1][j] \cdot dpYellow[1][i+1-j]\]
-                where:
-                </p>
-                <ul>
-                    <li>\(dpOriginal[][]\) is the \(dp[][]\) array corresponding to the original component</li>
-                    <li>\(dpBlue[][]\) is the \(dp[][]\) array corresponding to the blue component</li>
-                    <li>\(dpYellow[][]\) is the \(dp[][]\) array corresponding to the yellow component</li>
-                </ul>
-                <p>
-                Notice the upper bound on the sum is curiously
-                \(\left(i+1\right)\). Both the blue and yellow components have
-                a mine in the removed square. Thus we end up double counting
-                this mine. The \(\left(i+1\right)\) upper limit cancels out
-                with the double counting to get the correct result.
-                </p>
-                <p>
-                If the removed square is not a mine, we have
-                \[dpOriginal[0][i] = \sum \limits_{j=0}^i dpBlue[0][j] \cdot dpYellow[0][i-j].\]
-                Assuming there are \(k\) removed squares \(\left(k \leq 6\right)\), we have
-                \[\#configs[i] = \sum \limits_{mask=0}^{2^k-1} dp[mask][i].\]
-                Here, there are \(2^k\) masks as there are \(2^k\) possible
-                ways to place mines among the \(k\) removed squares.
-                </p>
-                <p>
-                Finally, the original recursive call has 0 removed squares, so
-                \(2^0 = 1\), there's 1 possible mask \(\left(mask = 0\right)\),
-                and the \(\#configs\) array is stored in \(dp[0].\)
-                </p>
-                <hr>
-                <p>
-                In this example, the original component was split into 2
-                sub-components, but in general, the original component can be
-                split into \(k\) sub-components. It is possible to generalize
-                this knapsack-like dynamic programming to work for \(k\)
-                sub-components.
-                </p>
-                <p>
-                There is a tricky case where a clue is surrounded by only
-                "removed" squares. Make sure to skip the masks which have the
-                incorrect number of mines for these clues.
-                </p>
-                <h4>Discussion on this Recursive Algorithm</h4>
-                <p>
-                Why is this algorithm still exponential? Consider the case
-                where all of the \(\binom{n}{\leq 6}\) subsets of nodes to
-                remove don't decrease the size of the component (there's still
-                1 component after removing nodes). In this case, we're forced
-                to solve the problem with normal recursive backtracking in
-                \(\mathcal{O}(n\cdot2^n)\). Although in practice, this case is
-                super rare.
-                </p>
-                <p>
-                Where does the speedup come from with this recursive approach?
-                For recursive backtracking, even with the best possible
-                pruning, you'll still hit the base case once for every mine
-                configuration. Thus, recursive backtracking has a lower bound
-                of \(\Omega\left(\text{number of mine configurations}\right)\).
-                This new recursive approach doesn't have the same lower bound,
-                and thus potentially can be faster (and is faster in practice).
-                </p>
-                <p>
-                Finally, here's a picture of the recursion tree for the board:
-                <img src="recursion_tree_removed_nodes.png" alt="recursion tree removed nodes" style="width:300px;height:auto;">.
-                Here, the squares marked with an "R" are articulation nodes in
-                the corresponding graph. If you remove any of the "R" squares,
-                the board will split into 2 components (not considering the
-                flagged squares).
-                </p>
-                <img src="recursion_tree_final.png" alt="recursion tree final" style="width:540px;height:auto;">.
-                <ul>
-                    <li>Each node in this tree represents a single recursive call</li>
-                    <li>Squares surrounded in black are in the sub-component in the current recursive call</li>
-                    <li>Squares surrounded in both black and red are the "removed" squares which are used to further split the current component</li>
-                    <li>Leaf node components are solved with recursive backtracking</li>
-                </ul>
-            </div>
-        </div>
-    </body>
+				<h3>Matrices and Local Deductions</h3>
+				<p>
+				Minesweeper can be reduced to
+				<a href="https://massaioli.wordpress.com/2013/01/12/solving-minesweeper-with-matricies/">solving a system of linear equations</a>.
+				Combining this with
+				<a href="https://stackoverflow.com/a/4356982">local deductions</a>
+				is a good approach to determining whether certain moves are
+				save. What if we ran these 2 approaches first, before splitting
+				the board by components? Any deducible squares which these 2
+				approaches give can be used to split components, reducing their
+				size.
+				</p>
+				<img src="backtracking_local_deductions_pseudo_code.png" alt="backtracking local deductions pseudo code" style="width:540px;height:auto;">
+				<p>An example:</p>
+				<img src="before_local.png" alt="before local" style="width:270px;height:auto;">
+				<img src="after_local.png" alt="after local" style="width:270px;height:auto;">
+				<p>
+				The [green/red] squares are the squares where running local
+				deductions determined they [didn't/did] have mines. Notice
+				local deductions have failed to find all possible deducible
+				squares (there's a 2-1 pattern on the top row).
+				</p>
+				<p>
+				Before running local deductions, there is 1 component with 28
+				squares. The backtracking would have taken \(\sim 28\cdot2^{28} = 7,516,192,768\)
+				operations. After running local deductions, there's 1 component
+				with 9 non-deduced squares
+				(\(9\cdot2^9 = 4,608\)).
+				</p>
+				<p>
+				Although this optimization seems like it would help a lot,
+				there are many cases where this optimization doesn't help out
+				much (for example, consider if there are no deducible squares).
+				</p>
+				<h4>Further Splitting of Components</h4>
+				<p>
+				Let's define the problem: You are given a <i>single</i>
+				component of \(n\) squares (labeled 1, 2, ..., n). Find:
+				</p>
+				<ul>
+					<li>\(\#configs[]\) defined as:  \(\#configs[i]\) = the number of mine configurations with \(i\) mines, (\(0 \leq i \leq M\))</li>
+					<li>\(\#configsWithJMine[][]\) defined as: \(\#configsWithJMine[i][j]\) = the number of mine configurations which have \(i\) mines, and square \(j\) is a mine, (\(0 \leq i \leq M, 1 \leq j \leq n\))</li>
+				</ul>
+				<p>
+				This of course can be solved with recursive backtracking in
+				\(\mathcal{O}(n\cdot2^n)\). Let's try to solve this problem
+				faster as it is usually the bottleneck of the entire mine
+				probability calculation (every other step runs in polynomial
+				time).
+				</p>
+				<p>
+				Consider the following board.
+				</p>
+				<img src="board_before_splitting_by_cut_nodes.png" alt="board before splitting by cut nodes" style="width:170px;height:auto;">
+				<p>
+				Imagine if we somehow "removed" the un-discovered square next to the 1.
+				</p>
+				<img src="board_middle_of_splitting_by_cut_nodes.png" alt="board middle of splitting by cut nodes" style="width:170px;height:auto;">
+				<p>
+				Then, the board would contain 2 components.
+				</p>
+				<img src="board_after_splitting_by_cut_nodes.png" alt="board after splitting by cut nodes" style="width:170px;height:auto;">
+				<p>
+				Now, what if we ran the backtracking <i>independently</i> on
+				both the blue and yellow components, and then somehow combined
+				the results? In this way, we can take a single component, and
+				split it further into \(\geq 2\) smaller components.
+				</p>
+				<p>
+				But why limit ourselves to splitting a single component once?
+				Notice, we have to solve the exact same problem for both the
+				blue and yellow components. Thus, why solve it with
+				backtracking, when we can again use the same trick of
+				"removing" squares? This leads to the following recursive
+				algorithm.
+				</p>
+				<img src="solve_component_recursively_pseudo_code.png" alt="solve component recursively pseudo code" style="width:540px;height:auto;">
+				<p>
+				Here, the "split" squares are the squares which we remove to
+				split up the original component. Before diving into the reasons
+				why this algorithm is still exponential, I'll explain the
+				following parts:
+				</p>
+				<ul>
+					<li>the \(findSplitSquares\) function</li>
+					<li>combining results</li>
+				</ul>
+				<h4>Finding Split Squares</h4>
+				<p>
+				First, we don't have to limit ourselves to removing just 1
+				square to split components. Although, assuming we remove \(k\)
+				squares, it turns out the combine step will take
+				\(\mathcal{O}(2^k)\) time. So in my implementation, I
+				arbitrarily chose 6 as an upper bound on the number of split
+				squares.
+				</p>
+				<p>
+				Finding split squares requires representing the minesweeper board as a graph:
+				</p>
+				<ul>
+					<li>squares are nodes</li>
+					<li>2 squares share an edge if there exists a number next to both squares</li>
+				</ul>
+				<p>
+				For example this board,
+				<img src="board_as_graph_2.png" alt="board as graph 2" style="width:170px;height:auto;">,
+				produces the following graph:
+				</p>
+				<img src="Drawing.png" alt="Drawing" style="width:300px;height:auto;">
+				<p>
+				Notice that if node 4 is removed, then the graph would split
+				into 2 connected components. Thus node 4 is an
+				<a href="https://cp-algorithms.com/graph/cutpoints.html">articulation node</a>.
+				The first attempt would be to choose \(\leq\) 6 articulation nodes
+				from the graph to remove. Although this approach would
+				fail on grids such as:
+				<img src="board_with_no_cut_nodes.png" alt="board with no cut nodes" style="width:160px;height:auto;">
+				whose graphs have no articulation nodes. So let's find a more
+				generalized solution.
+				</p>
+				<p>
+				Ideally, we would want to remove \(\leq\) 6 nodes such that the
+				size of the largest component is minimized. Unfortunately, the
+				generalized problem of finding k nodes to remove to minimize
+				the size of the largest remaining component
+				<a href="https://cs.stackexchange.com/q/12789">is NP-complete</a>.
+				But this isn't as relevant as you'd think. There are at least 2
+				options:
+				</p>
+				<ul>
+					<li>
+						employ an approximation algorithm such as
+						<a href="https://supernet.isenberg.umass.edu/hlogistics/slides/Pardalos-Bellago-Nagurney.pdf#page=38">the 2-exchange method</a>
+					</li>
+					<li>
+						employ a brute force approach similar to
+						<a href="https://cs.stackexchange.com/questions/12789/find-which-vertices-to-delete-from-graph-to-get-smallest-largest-component#comment27752_12809">this comment</a>.
+						Brute force here is okay since we're only removing
+						\(\leq\) 6 nodes (thus is exponential in 6).
+					</li>
+				</ul>
+				<h4>Combining Results</h4>
+				<p>
+				Recall the problem: you are given a <i>single</i> component of \(n\) squares (labeled 1, 2, ..., n). Find:
+				</p>
+				<ul>
+					<li>\(\#configs[]\) defined as:  \(\#configs[i]\) = the number of mine configurations with \(i\) mines, (\(0 \leq i \leq M\))</li>
+					<li>\(\#configsWithJMine[][]\) defined as: \(\#configsWithJMine[i][j]\) = the number of mine configurations which have \(i\) mines, and square \(j\) is a mine, (\(0 \leq i \leq M, 1 \leq j \leq n\))</li>
+				</ul>
+				<p>
+				I'll only explain how to calculate \(\#configs[]\) as
+				\(\#configsWithJMine[][]\) is calculated very similarly.
+				</p>
+				<hr>
+				<p>
+				To understand this section, it'll help to know about
+				<a href="https://codeforces.com/blog/entry/337">dynamic programming with bitmasks</a>.
+				Consider this example board again:</p>
+				<img src="board_after_splitting_by_cut_nodes.png" alt="board after splitting by cut nodes" style="width:170px;height:auto;">
+				<p>
+				Our goal is to calculate some sub-result (not necessarily
+				\(\#configs[]\)) for both the blue and yellow components, and
+				then calculate the same sub-result for the original component.
+				Also, we have to be able to calculate \(\#configs[]\) from this
+				sub-result.
+				</p>
+				<p>
+				The sub-result is an array \(dp[][]\) defined as:
+				\(dp[mask][i]\) = the number of mine configurations with \(i\)
+				mines under the restriction that if and only if the \(j\)-th
+				bit in \(mask\) is 1, then there is a mine in the \(j\)-th
+				removed square.
+				</p>
+				<p>
+				Since the above example has only 1 removed square we consider 2 cases:
+				</p>
+				<ul>
+					<li>the removed square is a mine \(\left(mask = 1\right)\)</li>
+					<li>the removed square is not a mine \(\left(mask = 0\right)\)</li>
+				</ul>
+				<p>
+				If the removed square is a mine, we have
+				\[dpOriginal[1][i] = \sum \limits_{j=0}^{i+1} dpBlue[1][j] \cdot dpYellow[1][i+1-j]\]
+				where:
+				</p>
+				<ul>
+					<li>\(dpOriginal[][]\) is the \(dp[][]\) array corresponding to the original component</li>
+					<li>\(dpBlue[][]\) is the \(dp[][]\) array corresponding to the blue component</li>
+					<li>\(dpYellow[][]\) is the \(dp[][]\) array corresponding to the yellow component</li>
+				</ul>
+				<p>
+				Notice the upper bound on the sum is curiously
+				\(\left(i+1\right)\). Both the blue and yellow components have
+				a mine in the removed square. Thus we end up double counting
+				this mine. The \(\left(i+1\right)\) upper limit cancels out
+				with the double counting to get the correct result.
+				</p>
+				<p>
+				If the removed square is not a mine, we have
+				\[dpOriginal[0][i] = \sum \limits_{j=0}^i dpBlue[0][j] \cdot dpYellow[0][i-j].\]
+				Assuming there are \(k\) removed squares \(\left(k \leq 6\right)\), we have
+				\[\#configs[i] = \sum \limits_{mask=0}^{2^k-1} dp[mask][i].\]
+				Here, there are \(2^k\) masks as there are \(2^k\) possible
+				ways to place mines among the \(k\) removed squares.
+				</p>
+				<p>
+				Finally, the original recursive call has 0 removed squares, so
+				\(2^0 = 1\), there's 1 possible mask \(\left(mask = 0\right)\),
+				and the \(\#configs\) array is stored in \(dp[0].\)
+				</p>
+				<hr>
+				<p>
+				In this example, the original component was split into 2
+				sub-components, but in general, the original component can be
+				split into \(k\) sub-components. It is possible to generalize
+				this knapsack-like dynamic programming to work for \(k\)
+				sub-components.
+				</p>
+				<p>
+				There is a tricky case where a clue is surrounded by only
+				"removed" squares. Make sure to skip the masks which have the
+				incorrect number of mines for these clues.
+				</p>
+				<h4>Discussion on this Recursive Algorithm</h4>
+				<p>
+				Why is this algorithm still exponential? Consider the case
+				where all of the \(\binom{n}{\leq 6}\) subsets of nodes to
+				remove don't decrease the size of the component (there's still
+				1 component after removing nodes). In this case, we're forced
+				to solve the problem with normal recursive backtracking in
+				\(\mathcal{O}(n\cdot2^n)\). Although in practice, this case is
+				super rare.
+				</p>
+				<p>
+				Where does the speedup come from with this recursive approach?
+				For recursive backtracking, even with the best possible
+				pruning, you'll still hit the base case once for every mine
+				configuration. Thus, recursive backtracking has a lower bound
+				of \(\Omega\left(\text{number of mine configurations}\right)\).
+				This new recursive approach doesn't have the same lower bound,
+				and thus potentially can be faster (and is faster in practice).
+				</p>
+				<p>
+				Finally, here's a picture of the recursion tree for the board:
+				<img src="recursion_tree_removed_nodes.png" alt="recursion tree removed nodes" style="width:300px;height:auto;">.
+				Here, the squares marked with an "R" are articulation nodes in
+				the corresponding graph. If you remove any of the "R" squares,
+				the board will split into 2 components (not considering the
+				flagged squares).
+				</p>
+				<img src="recursion_tree_final.png" alt="recursion tree final" style="width:540px;height:auto;">.
+				<ul>
+					<li>Each node in this tree represents a single recursive call</li>
+					<li>Squares surrounded in black are in the sub-component in the current recursive call</li>
+					<li>Squares surrounded in both black and red are the "removed" squares which are used to further split the current component</li>
+					<li>Leaf node components are solved with recursive backtracking</li>
+				</ul>
+			</div>
+		</div>
+	</body>
 </html>

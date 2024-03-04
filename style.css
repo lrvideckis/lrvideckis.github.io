@@ -1,78 +1,78 @@
 body {
-    /* https://www.magicpattern.design/tools/css-backgrounds */
-    background-color: #e5e5f7;
-    font-family: Arial;
-    opacity: 1;
-    background-image:  linear-gradient(30deg, #67d9ff 12%, transparent 12.5%, transparent 87%, #67d9ff 87.5%, #67d9ff), linear-gradient(150deg, #67d9ff 12%, transparent 12.5%, transparent 87%, #67d9ff 87.5%, #67d9ff), linear-gradient(30deg, #67d9ff 12%, transparent 12.5%, transparent 87%, #67d9ff 87.5%, #67d9ff), linear-gradient(150deg, #67d9ff 12%, transparent 12.5%, transparent 87%, #67d9ff 87.5%, #67d9ff), linear-gradient(60deg, #67d9ff77 25%, transparent 25.5%, transparent 75%, #67d9ff77 75%, #67d9ff77), linear-gradient(60deg, #67d9ff77 25%, transparent 25.5%, transparent 75%, #67d9ff77 75%, #67d9ff77);
-    background-size: 62px 109px;
-    background-position: 0 0, 0 0, 31px 54px, 31px 54px, 0 0, 31px 54px;
+	/* https://www.magicpattern.design/tools/css-backgrounds */
+	background-color: #e5e5f7;
+	font-family: Arial;
+	opacity: 1;
+	background-image:  linear-gradient(30deg, #67d9ff 12%, transparent 12.5%, transparent 87%, #67d9ff 87.5%, #67d9ff), linear-gradient(150deg, #67d9ff 12%, transparent 12.5%, transparent 87%, #67d9ff 87.5%, #67d9ff), linear-gradient(30deg, #67d9ff 12%, transparent 12.5%, transparent 87%, #67d9ff 87.5%, #67d9ff), linear-gradient(150deg, #67d9ff 12%, transparent 12.5%, transparent 87%, #67d9ff 87.5%, #67d9ff), linear-gradient(60deg, #67d9ff77 25%, transparent 25.5%, transparent 75%, #67d9ff77 75%, #67d9ff77), linear-gradient(60deg, #67d9ff77 25%, transparent 25.5%, transparent 75%, #67d9ff77 75%, #67d9ff77);
+	background-size: 62px 109px;
+	background-position: 0 0, 0 0, 31px 54px, 31px 54px, 0 0, 31px 54px;
 }
 div.nav_bar {
-    width: max-content;
-    background-color: white;
-    text-align: center;
+	width: max-content;
+	background-color: white;
+	text-align: center;
 
-    border: 1px solid red;
-    border-radius: 15px;
+	border: 1px solid red;
+	border-radius: 15px;
 
-    padding: 10px;
+	padding: 10px;
 }
 div.slide-container {
-    overflow: auto;
-    white-space: nowrap;
+	overflow: auto;
+	white-space: nowrap;
 }
 div.body {
-    justify-content: center;
-    width: max-content;
+	justify-content: center;
+	width: max-content;
 
-    margin-left: auto;
-    margin-right: auto;
+	margin-left: auto;
+	margin-right: auto;
 }
 div.heading {
-    width: max-content;
-    background-color: white;
-    text-align: center;
+	width: max-content;
+	background-color: white;
+	text-align: center;
 
-    margin-left: auto;
-    margin-right: auto;
+	margin-left: auto;
+	margin-right: auto;
 
-    border: 1px solid red;
-    border-radius: 15px;
+	border: 1px solid red;
+	border-radius: 15px;
 }
 div.main_content {
-    text-align: left;
-    width: 550px;
-    background-color: white;
+	text-align: left;
+	width: 550px;
+	background-color: white;
 
-    margin-left: auto;
-    margin-right: auto;
+	margin-left: auto;
+	margin-right: auto;
 
-    border: 1px solid red;
-    border-radius: 15px;
+	border: 1px solid red;
+	border-radius: 15px;
 
-    padding-left: 20px;
-    padding-right: 20px;
+	padding-left: 20px;
+	padding-right: 20px;
 }
 h1.main_title,h2.blog_date {
-    margin: 10px;
+	margin: 10px;
 }
 h3.blog_title {
-    text-align: center;
-    margin-bottom: 3px;
+	text-align: center;
+	margin-bottom: 3px;
 }
 p.blog_date {
-    text-align: center;
-    margin-top: 3px;
+	text-align: center;
+	margin-top: 3px;
 }
 img.dp {
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-    width:350px;
-    height:350px;
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+	width:350px;
+	height:350px;
 }
 table, th, td {
-  border: 1px solid black;
-  border-collapse: collapse;
-  padding: 5px;
+	border: 1px solid black;
+	border-collapse: collapse;
+	padding: 5px;
 }
